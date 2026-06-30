@@ -79,42 +79,6 @@ lib/
     └── services/                # Servicios compartidos
 ```
 
-## Equipo
-
-| Rol | Nombre | Ramas |
-|-----|--------|-------|
-| PM | Eduardo, Fátima | dev → main |
-| Arquitectura datos | Eduardo | feature/arquitectura-datos-locales |
-| Sync ventas | Eduardo | feature/cola-ventas-envio |
-| Auth/login | Hannia | feature/auth-vendedor |
-| Inicio jornada | Hannia | feature/flujo-inicio-jornada |
-| UI/UX | Fátima | feature/layout-navegacion-app |
-| Resumen día | Neyser | feature/resumen-dia |
-| Flujo venta | Mauricio | feature/flujo-venta |
-
-## Flujo de trabajo
-
-1. Clonar el repo
-2. `git checkout dev && git pull`
-3. `git checkout -b feature/xxxx`
-4. Desarrollar y commit frecuentes
-5. `git push origin feature/xxxx`
-6. Crear PR de `feature/xxxx` → `dev`
-7. Revisión cruzada + merge
-
-## Ejecutar
-
-```bash
-flutter pub get
-flutter run
-```
-
-## Building
-
-```bash
-flutter build apk --release
-```
-
 ## Licencia
 
 Propietario - Teknologix / RUTX
