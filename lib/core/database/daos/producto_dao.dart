@@ -1,0 +1,59 @@
+import 'package:sqflite/sqflite.dart';
+import '../entities/producto_entity.dart';
+
+class ProductoDao {
+  final Database db;
+
+  ProductoDao(this.db);
+
+  Future<void> insertAll(List<Producto> productos) async {
+    final batch = db.batch();
+    for (final p in productos) {
+      batch.insert('productos', p.toMap(),
+          conflictAlgorithm: ConflictAlgorithm.replace);
+    }
+    await batch.commit(noResult: true);
+  }
+
+  Future<List<Producto>> getAll() async {
+    final maps = await db.query(
+      'productos',
+      where: 'estatus = ?',
+      whereArgs: ['A'],
+      orderBy: 'nombre ASC',
+    );
+    return maps.map((m) => Producto.fromMap(m)).toList();
+  }
+
+  Future<Producto?> getById(int articuloId) async {
+    final maps = await db.query(
+      'productos',
+      where: 'articulo_id = ?',
+      whereArgs: [articuloId],
+      limit: 1,
+    );
+    if (maps.isEmpty) return null;
+    return Producto.fromMap(maps.first);
+  }
+
+  Future<List<Producto>> search(String query) async {
+    final maps = await db.query(
+      'productos',
+      where:
+          '(nombre LIKE ? OR CAST(articulo_id AS TEXT) LIKE ?) AND estatus = ?',
+      whereArgs: ['%$query%', '%$query%', 'A'],
+      orderBy: 'nombre ASC',
+    );
+    return maps.map((m) => Producto.fromMap(m)).toList();
+  }
+
+  Future<int> count() async {
+    final result =
+        await db.rawQuery('SELECT COUNT(*) as count FROM productos');
+    return Sqflite.firstIntValue(result) ?? 0;
+  }
+
+  Future<void> deleteAll() async {
+    await db.delete('productos');
+  }
+}

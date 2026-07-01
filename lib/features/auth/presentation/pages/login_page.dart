@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import '../../../../core/database/database_service.dart';
 
 class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+  final DatabaseService databaseService;
+
+  const LoginPage({super.key, required this.databaseService});
 
   @override
   State<LoginPage> createState() => _LoginPageState();
