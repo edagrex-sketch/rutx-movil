@@ -1,12 +1,9 @@
 import 'package:flutter/material.dart';
-import '../core/database/database_service.dart';
 import '../core/theme/app_theme.dart';
-import '../features/auth/presentation/pages/login_page.dart';
+import '../features/auth/presentation/pages/splash_page.dart';
 
 class RutxApp extends StatelessWidget {
-  final DatabaseService databaseService;
-
-  const RutxApp({super.key, required this.databaseService});
+  const RutxApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -14,7 +11,7 @@ class RutxApp extends StatelessWidget {
       title: 'RUTX',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
-      home: LoginPage(databaseService: databaseService),
+      home: const SplashPage(),
     );
   }
 }

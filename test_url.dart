@@ -1,0 +1,1 @@
+import 'package:dio/dio.dart'; void main() { final dio = Dio(BaseOptions(baseUrl: 'http://192.168.100.25:5047/api')); print(dio.options.baseUrl); print(Uri.parse(dio.options.baseUrl).resolve('/auth/login').toString()); }

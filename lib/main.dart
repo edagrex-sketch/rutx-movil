@@ -19,5 +19,5 @@ void main() async {
   final databaseService = DatabaseService();
   await databaseService.initialize();
 
-  runApp(RutxApp(databaseService: databaseService));
+  runApp(const RutxApp());
 }
