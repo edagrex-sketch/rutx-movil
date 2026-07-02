@@ -32,22 +32,30 @@ class _LoginPageState extends State<LoginPage> {
     
     if (mounted) {
       setState(() => _isLoading = false);
-    }
 
-    // Navegar de todas formas para demostración si el backend no está conectado
-    if (mounted) {
-      final hasData = await LocalStorage().hasSyncData();
-      if (!mounted) return;
+      if (success) {
+        // Si el login fue exitoso en el backend, verificamos los datos locales
+        final hasData = await LocalStorage().hasSyncData();
+        if (!mounted) return;
 
-      if (hasData) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const HomePage()),
-        );
+        if (hasData) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const HomePage()),
+          );
+        } else {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const DownloadPage()),
+          );
+        }
       } else {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const DownloadPage()),
+        // Mostrar mensaje de error si las credenciales fallan o el servidor no responde
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Error al iniciar sesión. Revisa tus credenciales o conexión.'),
+            backgroundColor: Colors.redAccent,
+          ),
         );
       }
     }

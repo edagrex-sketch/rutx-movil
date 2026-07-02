@@ -1,19 +1,19 @@
 import 'package:dio/dio.dart';
 import '../../../core/storage/local_storage.dart';
+import '../../../core/constants/api_constants.dart';
 
 class AuthRepository {
   final Dio _dio = Dio(BaseOptions(
-    baseUrl: 'http://10.0.2.2/api',
+    baseUrl: ApiConstants.baseUrl,
     connectTimeout: const Duration(seconds: 3),
     receiveTimeout: const Duration(seconds: 3),
-  )); // Update this later
+  ));
   final LocalStorage _localStorage = LocalStorage();
 
   Future<bool> login(String username, String password, bool rememberMe) async {
     try {
-      // Reemplaza '/login' por el endpoint real
-      final response = await _dio.post('/login', data: {
-        'username': username,
+      final response = await _dio.post('/api/auth/login', data: {
+        'usuario': username,
         'password': password,
       });
 
@@ -26,6 +26,7 @@ class AuthRepository {
       }
       return false;
     } catch (e) {
+      print('Error en login: $e');
       return false;
     }
   }
