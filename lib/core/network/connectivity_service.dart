@@ -7,15 +7,25 @@ class ConnectivityService {
 
   Stream<bool> get connectionStream => _connectionController.stream;
 
-  ConnectivityService() {
+ConnectivityService() {
     _initConnectivity();
-    _connectivity.onConnectivityChanged.listen(_updateConnectionStatus);
+    _connectivity.onConnectivityChanged.listen((List<ConnectivityResult> results) {
+      if (results.isNotEmpty) {
+        _updateConnectionStatus(results.first);
+      } else {
+        _updateConnectionStatus(ConnectivityResult.none);
+      }
+    });
   }
 
   Future<void> _initConnectivity() async {
     try {
       final result = await _connectivity.checkConnectivity();
-      _updateConnectionStatus(result);
+      if (result.isNotEmpty) {
+        _updateConnectionStatus(result.first);
+      } else {
+        _updateConnectionStatus(ConnectivityResult.none);
+      }
     } catch (e) {
       _connectionController.add(false);
     }
@@ -25,7 +35,7 @@ class ConnectivityService {
     final isConnected = result != ConnectivityResult.none;
     _connectionController.add(isConnected);
   }
-
+  
   Future<bool> isConnected() async {
     final result = await _connectivity.checkConnectivity();
     return result != ConnectivityResult.none;

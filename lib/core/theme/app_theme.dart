@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 
 class AppTheme {
-  static const Color primaryColor = Color(0xFF1E88E5);
-  static const Color secondaryColor = Color(0xFF43A047);
-  static const Color errorColor = Color(0xFFE53935);
-  static const Color backgroundColor = Color(0xFFF5F5F5);
+  static const Color primaryColor = Color(0xFF003B5C); // Dark Blue
+  static const Color accentColor = Color(0xFFFF6A13); // Orange
+  static const Color secondaryColor = Color(0xFFA8C8E9); // Light Blue
+  static const Color backgroundColor = Color(0xFFF4F6F8); // A bit lighter than E0E0E0 for better contrast or use E0E0E0
   static const Color surfaceColor = Colors.white;
-  static const Color textPrimary = Color(0xFF212121);
-  static const Color textSecondary = Color(0xFF757575);
+  static const Color textPrimary = Color(0xFF343D45); // Dark Grey
+  static const Color textSecondary = Color(0xFFB0B0B0); // Grey
+  static const Color lightGrey = Color(0xFFE0E0E0);
 
   static ThemeData get lightTheme {
     return ThemeData(
@@ -25,11 +26,11 @@ class AppTheme {
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: primaryColor,
+          backgroundColor: accentColor,
           foregroundColor: Colors.white,
           minimumSize: const Size(double.infinity, 48),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(12),
           ),
         ),
       ),
@@ -49,12 +50,12 @@ class AppTheme {
           borderSide: const BorderSide(color: primaryColor, width: 2),
         ),
       ),
-      cardTheme: CardTheme(
-        elevation: 1,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
-      ),
+      //cardTheme: CardTheme(
+        //elevation: 1,
+        //shape: RoundedRectangleBorder(
+          //borderRadius: BorderRadius.circular(8),
+        //),
+      //),
     );
   }
 }

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../core/theme/app_theme.dart';
-import '../features/auth/presentation/pages/login_page.dart';
+import '../features/auth/presentation/pages/splash_page.dart';
 
 class RutxApp extends StatelessWidget {
   const RutxApp({super.key});
@@ -11,7 +11,7 @@ class RutxApp extends StatelessWidget {
       title: 'RUTX',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
-      home: const LoginPage(),
+      home: const SplashPage(),
     );
   }
 }
