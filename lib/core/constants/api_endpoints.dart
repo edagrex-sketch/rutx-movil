@@ -2,7 +2,7 @@ class ApiEndpoints {
   static const String baseUrl = 'http://localhost:5047';
   
   // Auth
-  static const String login = '$baseUrl/api/v1/auth/login';
+  static const String login = '$baseUrl/api/auth/login';
   
   // Sync
   static String syncMorning(int vendedorId) => '$baseUrl/api/v1/sync/morning/$vendedorId';

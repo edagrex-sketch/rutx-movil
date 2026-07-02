@@ -31,14 +31,14 @@ ConnectivityService() {
     }
   }
 
-  void _updateConnectionStatus(ConnectivityResult result) {
-    final isConnected = result != ConnectivityResult.none;
+  void _updateConnectionStatus(List<ConnectivityResult> results) {
+    final isConnected = results.any((r) => r != ConnectivityResult.none);
     _connectionController.add(isConnected);
   }
   
   Future<bool> isConnected() async {
     final result = await _connectivity.checkConnectivity();
-    return result != ConnectivityResult.none;
+    return result.any((r) => r != ConnectivityResult.none);
   }
 
   void dispose() {

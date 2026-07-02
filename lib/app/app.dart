@@ -15,3 +15,4 @@ class RutxApp extends StatelessWidget {
     );
   }
 }
+}
