@@ -31,8 +31,8 @@ ConnectivityService() {
     }
   }
 
-  void _updateConnectionStatus(List<ConnectivityResult> results) {
-    final isConnected = results.any((r) => r != ConnectivityResult.none);
+  void _updateConnectionStatus(ConnectivityResult result) {
+    final isConnected = result != ConnectivityResult.none;
     _connectionController.add(isConnected);
   }
   
