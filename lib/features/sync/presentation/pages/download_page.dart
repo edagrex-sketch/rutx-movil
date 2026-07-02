@@ -2,11 +2,29 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/storage/local_storage.dart';
 import '../../../home/presentation/pages/home_page.dart';
+import '../../data/sync_repository.dart';
 
-class DownloadPage extends StatelessWidget {
+class DownloadPage extends StatefulWidget {
   const DownloadPage({Key? key}) : super(key: key);
 
-  Widget _buildSyncCard(String title, String subtitle, IconData icon) {
+  @override
+  State<DownloadPage> createState() => _DownloadPageState();
+}
+
+class _DownloadPageState extends State<DownloadPage> {
+  bool _isSyncing = false;
+  String _syncStatus = 'En espera';
+  String _productsCount = '485 artículos';
+  String _clientsCount = '6 clientes';
+
+  Widget _buildSyncCard(String title, String subtitle, IconData icon, String status) {
+    Color statusColor = AppTheme.textSecondary;
+    if (status == 'Descargando...') {
+      statusColor = AppTheme.accentColor;
+    } else if (status == '¡Completado!') {
+      statusColor = Colors.green;
+    }
+
     return Container(
       decoration: const BoxDecoration(
         border: Border(bottom: BorderSide(color: AppTheme.lightGrey)),
@@ -33,10 +51,47 @@ class DownloadPage extends StatelessWidget {
               ],
             ),
           ),
-          const Text('En espera', style: TextStyle(color: AppTheme.textSecondary, fontSize: 14)),
+          Text(status, style: TextStyle(color: statusColor, fontSize: 14, fontWeight: status == 'En espera' ? FontWeight.normal : FontWeight.bold)),
         ],
       ),
     );
+  }
+
+  void _handleSync() async {
+    setState(() {
+      _isSyncing = true;
+      _syncStatus = 'Descargando...';
+    });
+
+    final success = await SyncRepository().downloadMorningData(7);
+
+    if (mounted) {
+      if (success) {
+        setState(() {
+          _syncStatus = '¡Completado!';
+        });
+        await LocalStorage().setSyncData(true);
+        // Esperar un segundo para que el usuario vea que se completó
+        await Future.delayed(const Duration(seconds: 1));
+        if (mounted) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const HomePage()),
+          );
+        }
+      } else {
+        setState(() {
+          _isSyncing = false;
+          _syncStatus = 'Error';
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Error al descargar los datos. Verifica tu conexión al servidor.'),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -100,33 +155,30 @@ class DownloadPage extends StatelessWidget {
                     ),
                     child: Column(
                       children: [
-                        _buildSyncCard('Catálogo de productos', '485 artículos', Icons.download_outlined),
-                        _buildSyncCard('Clientes de la ruta', '6 clientes', Icons.download_outlined),
-                        _buildSyncCard('Lista de precios', 'Vigente hoy', Icons.download_outlined),
-                        _buildSyncCard('Ruta asignada', 'Zona Norte — 6 paradas', Icons.download_outlined),
+                        _buildSyncCard('Catálogo de productos', _productsCount, Icons.inventory_2_outlined, _syncStatus),
+                        _buildSyncCard('Clientes de la ruta', _clientsCount, Icons.people_outline, _syncStatus),
+                        _buildSyncCard('Lista de precios', 'Vigente hoy', Icons.price_change_outlined, _syncStatus),
+                        _buildSyncCard('Ruta asignada', 'Ruta Activa', Icons.map_outlined, _syncStatus),
                       ],
                     ),
                   ),
                   const SizedBox(height: 24),
-                  ElevatedButton.icon(
-                    onPressed: () async {
-                      // Simular descarga y marcar como disponible localmente
-                      await LocalStorage().setSyncData(true);
-                      if (context.mounted) {
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(builder: (context) => const HomePage()),
-                        );
-                      }
-                    },
-                    icon: const Icon(Icons.download_outlined),
-                    label: const Text('Descargar datos del día', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
+                  if (_isSyncing && _syncStatus == 'Descargando...')
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 16.0),
+                      child: CircularProgressIndicator(color: AppTheme.accentColor),
+                    )
+                  else
+                    ElevatedButton.icon(
+                      onPressed: _isSyncing ? null : _handleSync,
+                      icon: const Icon(Icons.download_outlined),
+                      label: const Text('Descargar datos del día', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                      ),
                     ),
-                  ),
                   const SizedBox(height: 16),
-                  const Text('Jue 12 Jun • Zona Norte • Carlos Ríos', style: TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
+                  const Text('Ruta Centro • Vendedor #7', style: TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
                 ],
               ),
             ),
