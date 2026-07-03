@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-import '../../../../core/theme/app_theme.dart';
+import '../../../../core/constants/api_constants.dart';
+import '../../../../core/network/sync_result.dart';
 import '../../../../core/storage/local_storage.dart';
+import '../../../../core/theme/app_theme.dart';
 import '../../../home/presentation/pages/home_page.dart';
 import '../../data/sync_repository.dart';
 
@@ -63,15 +65,16 @@ class _DownloadPageState extends State<DownloadPage> {
       _syncStatus = 'Descargando...';
     });
 
-    final success = await SyncRepository().downloadMorningData(7);
+    final result = await SyncRepository().downloadMorningData(7);
 
     if (mounted) {
-      if (success) {
+      if (result is SyncSuccess) {
         setState(() {
           _syncStatus = '¡Completado!';
+          _productsCount = '${result.productos} artículos';
+          _clientsCount = '${result.clientes} clientes';
         });
         await LocalStorage().setSyncData(true);
-        // Esperar un segundo para que el usuario vea que se completó
         await Future.delayed(const Duration(seconds: 1));
         if (mounted) {
           Navigator.pushReplacement(
@@ -80,13 +83,14 @@ class _DownloadPageState extends State<DownloadPage> {
           );
         }
       } else {
+        final error = result as SyncFailure;
         setState(() {
           _isSyncing = false;
           _syncStatus = 'Error';
         });
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Error al descargar los datos. Verifica tu conexión al servidor.'),
+          SnackBar(
+            content: Text(error.mensaje),
             backgroundColor: Colors.redAccent,
           ),
         );
@@ -168,7 +172,7 @@ class _DownloadPageState extends State<DownloadPage> {
                       padding: EdgeInsets.symmetric(vertical: 16.0),
                       child: CircularProgressIndicator(color: AppTheme.accentColor),
                     )
-                  else
+                  else ...[
                     ElevatedButton.icon(
                       onPressed: _isSyncing ? null : _handleSync,
                       icon: const Icon(Icons.download_outlined),
@@ -177,8 +181,43 @@ class _DownloadPageState extends State<DownloadPage> {
                         padding: const EdgeInsets.symmetric(vertical: 16),
                       ),
                     ),
+                    const SizedBox(height: 12),
+                    TextButton.icon(
+                      onPressed: () async {
+                        await LocalStorage().setSyncData(true);
+                        if (mounted) {
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(builder: (context) => const HomePage()),
+                          );
+                        }
+                      },
+                      icon: const Icon(Icons.skip_next_outlined),
+                      label: const Text('Continuar con datos locales'),
+                      style: TextButton.styleFrom(foregroundColor: AppTheme.textSecondary),
+                    ),
+                  ],
+                  const SizedBox(height: 12),
+                  if (_syncStatus == 'Error')
+                    TextButton.icon(
+                      onPressed: () {
+                        ApiConstants.useMock = !ApiConstants.useMock;
+                        _handleSync();
+                      },
+                      icon: const Icon(Icons.science_outlined, size: 18),
+                      label: Text(
+                        '${ApiConstants.useMock ? 'Usando' : 'Activar'} servidor mock',
+                        style: const TextStyle(fontSize: 13),
+                      ),
+                      style: TextButton.styleFrom(foregroundColor: AppTheme.accentColor),
+                    ),
                   const SizedBox(height: 16),
                   const Text('Ruta Centro • Vendedor #7', style: TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
+                  if (ApiConstants.useMock)
+                    const Padding(
+                      padding: EdgeInsets.only(top: 4),
+                      child: Text('🧪 Modo pruebas', style: TextStyle(color: AppTheme.accentColor, fontSize: 11)),
+                    ),
                 ],
               ),
             ),

@@ -24,6 +24,16 @@ class VentaDao {
     return maps.map((m) => VentaPendiente.fromMap(m)).toList();
   }
 
+  Future<List<VentaPendiente>> getByEstado(String estado) async {
+    final maps = await db.query(
+      'ventas_pendientes',
+      where: 'estado = ?',
+      whereArgs: [estado],
+      orderBy: 'fecha_hora ASC',
+    );
+    return maps.map((m) => VentaPendiente.fromMap(m)).toList();
+  }
+
   Future<List<VentaPendiente>> getAll() async {
     final maps = await db.query(
       'ventas_pendientes',

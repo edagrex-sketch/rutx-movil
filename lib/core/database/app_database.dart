@@ -103,9 +103,12 @@ class AppDatabase {
     ventaDao = VentaDao(db);
     notificacionDao = NotificacionDao(db);
 
-    // Auto-seed if empty
-    final countVal = Sqflite.firstIntValue(await db.rawQuery('SELECT COUNT(*) FROM clientes')) ?? 0;
-    if (countVal == 0) {
+    // Auto-seed if ANY table is empty
+    final clientesCount = Sqflite.firstIntValue(await db.rawQuery('SELECT COUNT(*) FROM clientes')) ?? 0;
+    final productosCount = Sqflite.firstIntValue(await db.rawQuery('SELECT COUNT(*) FROM productos')) ?? 0;
+    final ventasCount = Sqflite.firstIntValue(await db.rawQuery('SELECT COUNT(*) FROM ventas_pendientes')) ?? 0;
+    final notifCount = Sqflite.firstIntValue(await db.rawQuery('SELECT COUNT(*) FROM notificaciones')) ?? 0;
+    if (clientesCount == 0 || productosCount == 0 || ventasCount == 0 || notifCount == 0) {
       await seedDatabase();
     }
   }

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:sqflite/sqflite.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/database/app_database.dart';
 import '../../../../core/database/entities/notificacion_entity.dart';
@@ -25,37 +24,6 @@ class _NotificationsPageState extends State<NotificationsPage> {
   Future<void> _loadNotifications() async {
     final db = AppDatabase();
     await db.initialize();
-    
-    // Seed notifications if database is empty
-    final count = await db.notificacionDao.db.rawQuery('SELECT COUNT(*) as count FROM notificaciones');
-    final countVal = Sqflite.firstIntValue(count) ?? 0;
-    
-    if (countVal == 0) {
-      // Seed details in a custom json or text if needed. For Sprint 1, we save standard messages.
-      // We will parse message details using structured text: "Title|Sender|Time|Status"
-      await db.notificacionDao.insertAll([
-        Notificacion(
-          mensaje: 'Promoción refrescos hoy|Oficina Central|08:00|Confirmado',
-          leida: true,
-          fechaCreacion: '2026-07-02 08:00:00',
-        ),
-        Notificacion(
-          mensaje: 'Meta del día actualizada|Gerente de Ventas|09:30|',
-          leida: true,
-          fechaCreacion: '2026-07-02 09:30:00',
-        ),
-        Notificacion(
-          mensaje: 'Producto sin stock|Almacén|10:15|',
-          leida: false,
-          fechaCreacion: '2026-07-02 10:15:00',
-        ),
-        Notificacion(
-          mensaje: 'Recordatorio cierre|Oficina Central|14:00|',
-          leida: false,
-          fechaCreacion: '2026-07-02 14:00:00',
-        ),
-      ]);
-    }
 
     final list = await db.notificacionDao.getAll();
     final unread = await db.notificacionDao.countNoLeidas();

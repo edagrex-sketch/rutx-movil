@@ -35,54 +35,9 @@ class _ResumenDiaPageState extends State<ResumenDiaPage> {
     try {
       final db = AppDatabase();
       await db.initialize();
-      
-      var list = await db.ventaDao.getAll();
-      
-      // Seed mock sales if empty to match the user's requested view
-      if (list.isEmpty) {
-        final today = DateTime.now().toIso8601String().substring(0, 10);
-        await db.ventaDao.insert(VentaPendiente(
-          ventaMovilId: 'VTA-Mendoza',
-          vendedorId: 7,
-          clienteId: 1,
-          clienteNombre: 'Abarrotes Mendoza',
-          fechaHora: '$today 09:15:00',
-          estado: 'enviada',
-          total: 1480.0,
-          detalles: [],
-        ));
-        await db.ventaDao.insert(VentaPendiente(
-          ventaMovilId: 'VTA-Roble',
-          vendedorId: 7,
-          clienteId: 2,
-          clienteNombre: 'Minisuper El Roble',
-          fechaHora: '$today 10:40:00',
-          estado: 'enviada',
-          total: 650.0,
-          detalles: [],
-        ));
-        await db.ventaDao.insert(VentaPendiente(
-          ventaMovilId: 'VTA-DonPepe',
-          vendedorId: 7,
-          clienteId: 3,
-          clienteNombre: 'Tienda Don Pepe',
-          fechaHora: '$today 11:55:00',
-          estado: 'pendiente',
-          total: 390.0,
-          detalles: [],
-        ));
-        await db.ventaDao.insert(VentaPendiente(
-          ventaMovilId: 'VTA-Reyes',
-          vendedorId: 7,
-          clienteId: 4,
-          clienteNombre: 'Comercial Reyes',
-          fechaHora: '$today 12:30:00',
-          estado: 'error',
-          total: 820.0,
-          detalles: [],
-        ));
-        list = await db.ventaDao.getAll();
-      }
+
+      final today = DateTime.now().toIso8601String().substring(0, 10);
+      final list = await db.ventaDao.getDelDia(today);
 
       int pendientes = 0;
       for (final v in list) {
@@ -98,9 +53,7 @@ class _ResumenDiaPageState extends State<ResumenDiaPage> {
           _isLoading = false;
         });
       }
-    } catch (e, stackTrace) {
-      print('Error al cargar ventas en ResumenDiaPage: $e');
-      print(stackTrace);
+    } catch (e) {
       if (mounted) {
         setState(() {
           _isLoading = false;
