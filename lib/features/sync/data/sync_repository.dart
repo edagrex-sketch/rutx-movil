@@ -1,8 +1,9 @@
 import 'package:dio/dio.dart';
-import '../../../../core/database/app_database.dart';
-import '../../../../core/database/entities/cliente_entity.dart';
-import '../../../../core/database/entities/producto_entity.dart';
-import '../../../../core/network/sync_result.dart';
+import '../../../core/constants/api_constants.dart';
+import '../../../core/database/app_database.dart';
+import '../../../core/database/entities/cliente_entity.dart';
+import '../../../core/database/entities/producto_entity.dart';
+import '../../../core/network/sync_result.dart';
 
 class SyncRepository {
   final Dio _dio;
@@ -14,7 +15,7 @@ class SyncRepository {
 
   static Dio _createDio() {
     final d = Dio(BaseOptions(
-      baseUrl: 'http://10.0.2.2:5047',
+      baseUrl: ApiConstants.baseUrl,
       connectTimeout: const Duration(seconds: 10),
       receiveTimeout: const Duration(seconds: 15),
     ));

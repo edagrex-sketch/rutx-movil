@@ -62,44 +62,56 @@ class _VentasListPageState extends State<VentasListPage> {
                     ? const Center(
                         child: Text('No hay ventas registradas hoy.', style: TextStyle(color: AppTheme.textSecondary)),
                       )
-                    : ListView.builder(
-                        padding: const EdgeInsets.all(16),
-                        itemCount: _ventas.length,
-                        itemBuilder: (context, index) {
-                          final v = _ventas[index];
-                          return Container(
-                            margin: const EdgeInsets.only(bottom: 12),
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: AppTheme.lightGrey),
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      v.clienteNombre,
-                                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppTheme.textPrimary),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      'Hora: ${v.fechaHora.substring(11, 16)} · Estado: ${v.estado.toUpperCase()}',
-                                      style: TextStyle(color: _getStatusTextColor(v.estado), fontSize: 13, fontWeight: FontWeight.bold),
-                                    ),
-                                  ],
-                                ),
-                                Text(
-                                  '\$${v.total.toStringAsFixed(2)}',
-                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppTheme.textPrimary),
-                                ),
-                              ],
-                            ),
-                          );
-                        },
+                    : RefreshIndicator(
+                        onRefresh: _loadVentas,
+                        child: ListView.builder(
+                          padding: const EdgeInsets.all(16),
+                          itemCount: _ventas.length,
+                          itemBuilder: (context, index) {
+                            final v = _ventas[index];
+                            final articulos = v.detalles.length;
+                            return Container(
+                              margin: const EdgeInsets.only(bottom: 12),
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: AppTheme.lightGrey),
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        v.clienteNombre,
+                                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppTheme.textPrimary),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        'Hora: ${v.fechaHora.substring(11, 16)} · Estado: ${v.estado.toUpperCase()}',
+                                        style: TextStyle(color: _getStatusTextColor(v.estado), fontSize: 13, fontWeight: FontWeight.bold),
+                                      ),
+                                      if (articulos > 0)
+                                        Padding(
+                                          padding: const EdgeInsets.only(top: 2),
+                                          child: Text(
+                                            '$articulos artículo${articulos == 1 ? '' : 's'}',
+                                            style: const TextStyle(color: AppTheme.textSecondary, fontSize: 12),
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                  Text(
+                                    '\$${v.total.toStringAsFixed(2)}',
+                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppTheme.textPrimary),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
                       ),
           ),
         ],

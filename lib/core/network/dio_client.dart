@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import '../constants/api_constants.dart';
 import '../storage/local_storage.dart';
 
 class DioClient {
@@ -16,7 +17,7 @@ class DioClient {
   }
 
   BaseOptions _createOptions() => BaseOptions(
-        baseUrl: 'http://10.0.2.2:5047',
+        baseUrl: ApiConstants.baseUrl,
         connectTimeout: const Duration(seconds: 10),
         receiveTimeout: const Duration(seconds: 15),
         headers: {'Content-Type': 'application/json'},

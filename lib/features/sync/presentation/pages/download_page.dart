@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/constants/api_constants.dart';
 import '../../../../core/network/sync_result.dart';
 import '../../../../core/storage/local_storage.dart';
 import '../../../../core/theme/app_theme.dart';
@@ -171,7 +172,7 @@ class _DownloadPageState extends State<DownloadPage> {
                       padding: EdgeInsets.symmetric(vertical: 16.0),
                       child: CircularProgressIndicator(color: AppTheme.accentColor),
                     )
-                  else
+                  else ...[
                     ElevatedButton.icon(
                       onPressed: _isSyncing ? null : _handleSync,
                       icon: const Icon(Icons.download_outlined),
@@ -180,8 +181,43 @@ class _DownloadPageState extends State<DownloadPage> {
                         padding: const EdgeInsets.symmetric(vertical: 16),
                       ),
                     ),
+                    const SizedBox(height: 12),
+                    TextButton.icon(
+                      onPressed: () async {
+                        await LocalStorage().setSyncData(true);
+                        if (mounted) {
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(builder: (context) => const HomePage()),
+                          );
+                        }
+                      },
+                      icon: const Icon(Icons.skip_next_outlined),
+                      label: const Text('Continuar con datos locales'),
+                      style: TextButton.styleFrom(foregroundColor: AppTheme.textSecondary),
+                    ),
+                  ],
+                  const SizedBox(height: 12),
+                  if (_syncStatus == 'Error')
+                    TextButton.icon(
+                      onPressed: () {
+                        ApiConstants.useMock = !ApiConstants.useMock;
+                        _handleSync();
+                      },
+                      icon: const Icon(Icons.science_outlined, size: 18),
+                      label: Text(
+                        '${ApiConstants.useMock ? 'Usando' : 'Activar'} servidor mock',
+                        style: const TextStyle(fontSize: 13),
+                      ),
+                      style: TextButton.styleFrom(foregroundColor: AppTheme.accentColor),
+                    ),
                   const SizedBox(height: 16),
                   const Text('Ruta Centro • Vendedor #7', style: TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
+                  if (ApiConstants.useMock)
+                    const Padding(
+                      padding: EdgeInsets.only(top: 4),
+                      child: Text('🧪 Modo pruebas', style: TextStyle(color: AppTheme.accentColor, fontSize: 11)),
+                    ),
                 ],
               ),
             ),
