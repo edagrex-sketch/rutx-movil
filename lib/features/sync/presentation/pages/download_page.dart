@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../../../core/theme/app_theme.dart';
+import '../../../../core/network/sync_result.dart';
 import '../../../../core/storage/local_storage.dart';
+import '../../../../core/theme/app_theme.dart';
 import '../../../home/presentation/pages/home_page.dart';
 import '../../data/sync_repository.dart';
 
@@ -63,15 +64,16 @@ class _DownloadPageState extends State<DownloadPage> {
       _syncStatus = 'Descargando...';
     });
 
-    final success = await SyncRepository().downloadMorningData(7);
+    final result = await SyncRepository().downloadMorningData(7);
 
     if (mounted) {
-      if (success) {
+      if (result is SyncSuccess) {
         setState(() {
           _syncStatus = '¡Completado!';
+          _productsCount = '${result.productos} artículos';
+          _clientsCount = '${result.clientes} clientes';
         });
         await LocalStorage().setSyncData(true);
-        // Esperar un segundo para que el usuario vea que se completó
         await Future.delayed(const Duration(seconds: 1));
         if (mounted) {
           Navigator.pushReplacement(
@@ -80,13 +82,14 @@ class _DownloadPageState extends State<DownloadPage> {
           );
         }
       } else {
+        final error = result as SyncFailure;
         setState(() {
           _isSyncing = false;
           _syncStatus = 'Error';
         });
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Error al descargar los datos. Verifica tu conexión al servidor.'),
+          SnackBar(
+            content: Text(error.mensaje),
             backgroundColor: Colors.redAccent,
           ),
         );
