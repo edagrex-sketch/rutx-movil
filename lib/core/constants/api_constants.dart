@@ -1,5 +1,13 @@
+import 'dart:io';
+
 class ApiConstants {
-  // TODO: Cada desarrollador debe cambiar esta IP por la IP de su propia computadora en su red Wi-Fi
-  // Para saber tu IP, abre una terminal y escribe 'ipconfig' (Windows) o 'ifconfig' (Mac/Linux)
-  static const String baseUrl = 'http://10.0.2.2:5047';
+  static bool useMock = false;
+
+  static String get baseUrl {
+    final port = useMock ? '5048' : '5047';
+    if (Platform.isAndroid) {
+      return 'http://10.0.2.2:$port';
+    }
+    return 'http://localhost:$port';
+  }
 }

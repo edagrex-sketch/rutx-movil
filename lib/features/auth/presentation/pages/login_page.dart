@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_theme.dart';
-import '../../../../core/storage/local_storage.dart';
+import '../../../../core/database/app_database.dart';
 import '../../data/auth_repository.dart';
-import '../../../sync/presentation/pages/download_page.dart';
 import '../../../home/presentation/pages/home_page.dart';
+import '../../../sync/presentation/pages/download_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
@@ -34,8 +34,10 @@ class _LoginPageState extends State<LoginPage> {
       setState(() => _isLoading = false);
 
       if (success) {
-        // Si el login fue exitoso en el backend, verificamos los datos locales
-        final hasData = await LocalStorage().hasSyncData();
+        final db = AppDatabase();
+        await db.initialize();
+        final clientes = await db.clienteDao.getAll();
+        final hasData = clientes.isNotEmpty;
         if (!mounted) return;
 
         if (hasData) {

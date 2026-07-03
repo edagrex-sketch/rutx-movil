@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_theme.dart';
-import '../../../../core/storage/local_storage.dart';
+import '../../../../core/database/app_database.dart';
 import '../../data/auth_repository.dart';
 import 'login_page.dart';
 import '../../../sync/presentation/pages/download_page.dart';
@@ -31,10 +31,12 @@ class _SplashPageState extends State<SplashPage> {
     if (!mounted) return;
 
     if (hasToken) {
-      final hasData = await LocalStorage().hasSyncData();
+      final db = AppDatabase();
+      await db.initialize();
+      final clientes = await db.clienteDao.getAll();
       if (!mounted) return;
-      
-      if (hasData) {
+
+      if (clientes.isNotEmpty) {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => const HomePage()),

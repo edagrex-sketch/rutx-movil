@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/storage/local_storage.dart';
 import '../../../../core/database/app_database.dart';
 import '../../../../core/database/entities/cliente_entity.dart';
 import '../../../../core/database/entities/producto_entity.dart';
@@ -116,6 +117,8 @@ class _NuevaVentaPageState extends State<NuevaVentaPage> with SingleTickerProvid
   void _confirmSale() async {
     if (_cart.isEmpty) return;
 
+    setState(() => _isLoading = true);
+
     final List<Map<String, dynamic>> detalles = [];
     _cart.forEach((id, qty) {
       final prod = _productos.firstWhere((p) => p.articuloId == id);
@@ -129,9 +132,10 @@ class _NuevaVentaPageState extends State<NuevaVentaPage> with SingleTickerProvid
 
     final totalAmount = _getCartTotal();
     final ventaId = 'VTA-${const Uuid().v4().substring(0, 8).toUpperCase()}';
+    final vendedorId = await LocalStorage().getVendedorId() ?? 7;
     final venta = VentaPendiente(
       ventaMovilId: ventaId,
-      vendedorId: 7,
+      vendedorId: vendedorId,
       clienteId: widget.cliente.clienteId,
       clienteNombre: widget.cliente.nombreCliente,
       fechaHora: DateTime.now().toIso8601String(),
@@ -142,11 +146,11 @@ class _NuevaVentaPageState extends State<NuevaVentaPage> with SingleTickerProvid
 
     final success = await _salesRepository.saveSaleLocally(venta);
     if (mounted) {
+      setState(() => _isLoading = false);
+
       if (success) {
-        // Trigger server sync in background immediately
         _salesRepository.syncPendingSales();
 
-        // Redirect to success page
         final result = await Navigator.push<String>(
           context,
           MaterialPageRoute(
@@ -166,7 +170,7 @@ class _NuevaVentaPageState extends State<NuevaVentaPage> with SingleTickerProvid
               _tabController.animateTo(0);
             });
           } else {
-            Navigator.pop(context, true); // Go back to Client route screen with success flag
+            Navigator.pop(context, true);
           }
         }
       } else {

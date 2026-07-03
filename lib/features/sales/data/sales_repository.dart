@@ -18,13 +18,8 @@ class SalesRepository {
       final db = AppDatabase();
       await db.initialize();
       await db.ventaDao.insert(venta);
-      
-      // Intentar sincronizar de inmediato de forma asíncrona
-      syncPendingSales();
-      
       return true;
     } catch (e) {
-      print('Error al guardar venta localmente: $e');
       return false;
     }
   }
@@ -56,6 +51,7 @@ class SalesRepository {
     try {
       final List<Map<String, dynamic>> details = v.detalles.map((d) => {
         'articulo_id': d['articulo_id'] as int,
+        'nombre': d['nombre'] as String? ?? '',
         'unidades': (d['unidades'] as num).toDouble(),
         'precio_unitario': (d['precio_unitario'] as num).toDouble(),
       }).toList();
@@ -64,6 +60,7 @@ class SalesRepository {
         'venta_movil_id': v.ventaMovilId,
         'vendedor_id': v.vendedorId,
         'cliente_id': v.clienteId,
+        'cliente_nombre': v.clienteNombre,
         'fecha_hora': v.fechaHora,
         'notas': 'Pedido Móvil',
         'detalles': details,
