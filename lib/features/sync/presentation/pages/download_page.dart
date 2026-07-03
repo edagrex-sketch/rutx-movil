@@ -15,9 +15,29 @@ class DownloadPage extends StatefulWidget {
 
 class _DownloadPageState extends State<DownloadPage> {
   bool _isSyncing = false;
+  bool _hasLocalData = false;
   String _syncStatus = 'En espera';
-  String _productsCount = '485 artículos';
-  String _clientsCount = '6 clientes';
+  String _productsCount = '-- artículos';
+  String _clientsCount = '-- clientes';
+
+  @override
+  void initState() {
+    super.initState();
+    _checkLocalData();
+  }
+
+  Future<void> _checkLocalData() async {
+    final hasData = await LocalStorage().hasSyncData();
+    if (mounted) {
+      setState(() {
+        _hasLocalData = hasData;
+        if (hasData) {
+          _productsCount = 'Disponibles en caché';
+          _clientsCount = 'Disponibles en caché';
+        }
+      });
+    }
+  }
 
   Widget _buildSyncCard(String title, String subtitle, IconData icon, String status) {
     Color statusColor = AppTheme.textSecondary;
@@ -181,21 +201,18 @@ class _DownloadPageState extends State<DownloadPage> {
                         padding: const EdgeInsets.symmetric(vertical: 16),
                       ),
                     ),
-                    const SizedBox(height: 12),
-                    TextButton.icon(
-                      onPressed: () async {
-                        await LocalStorage().setSyncData(true);
-                        if (mounted) {
+                    if (_hasLocalData)
+                      TextButton.icon(
+                        onPressed: () {
                           Navigator.pushReplacement(
                             context,
                             MaterialPageRoute(builder: (context) => const HomePage()),
                           );
-                        }
-                      },
-                      icon: const Icon(Icons.skip_next_outlined),
-                      label: const Text('Continuar con datos locales'),
-                      style: TextButton.styleFrom(foregroundColor: AppTheme.textSecondary),
-                    ),
+                        },
+                        icon: const Icon(Icons.skip_next_outlined),
+                        label: const Text('Continuar con datos locales'),
+                        style: TextButton.styleFrom(foregroundColor: AppTheme.textSecondary),
+                      ),
                   ],
                   const SizedBox(height: 12),
                   if (_syncStatus == 'Error')

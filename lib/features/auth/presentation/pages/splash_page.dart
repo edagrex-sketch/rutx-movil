@@ -34,9 +34,10 @@ class _SplashPageState extends State<SplashPage> {
       final db = AppDatabase();
       await db.initialize();
       final clientes = await db.clienteDao.getAll();
+      final productos = await db.productDao.getAll();
       if (!mounted) return;
 
-      if (clientes.isNotEmpty) {
+      if (clientes.isNotEmpty && productos.isNotEmpty) {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => const HomePage()),
