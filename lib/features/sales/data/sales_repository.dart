@@ -67,8 +67,10 @@ class SalesRepository {
         'detalles': details,
       });
 
+      print('Venta ${v.ventaMovilId} subida OK: ${response.statusCode}');
       return response.statusCode == 200 || response.statusCode == 201;
     } catch (e) {
+      print('Error subiendo venta ${v.ventaMovilId}: $e');
       return false;
     }
   }

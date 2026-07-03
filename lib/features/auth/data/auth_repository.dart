@@ -20,7 +20,7 @@ class AuthRepository {
       if (response.statusCode == 200 && response.data != null) {
         final token = response.data['token'] as String;
         await _localStorage.saveToken(token);
-        await _localStorage.saveVendedorId(7);
+        await _localStorage.saveVendedorId(695);
         await _localStorage.saveVendedorNombre('Vendedor Ruta Centro');
         return true;
       }

@@ -68,7 +68,22 @@ class _ResumenDiaPageState extends State<ResumenDiaPage> {
     await _loadVentas();
     if (mounted) {
       setState(() => _isSyncing = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(_pendientesCount > 0 
+            ? 'Aún hay ventas sin sincronizar. Verifica que los clientes existan en el servidor.'
+            : 'Sincronización completada'),
+          backgroundColor: _pendientesCount > 0 ? Colors.orange : Colors.green,
+        ),
+      );
     }
+  }
+
+  void _clearOldSales() async {
+    final db = AppDatabase();
+    await db.initialize();
+    await db.ventaDao.deleteAll();
+    await _loadVentas();
   }
 
   void _handleCerrarJornada() async {
@@ -308,7 +323,7 @@ class _ResumenDiaPageState extends State<ResumenDiaPage> {
                           SizedBox(
                             width: double.infinity,
                             child: OutlinedButton.icon(
-                              onPressed: _pendientesCount == 0 ? null : _handleSync,
+                              onPressed: _handleSync,
                               icon: const Icon(Icons.sync, color: Color(0xFFF57C00)),
                               label: const Text(
                                 'Sincronización final',
@@ -322,6 +337,18 @@ class _ResumenDiaPageState extends State<ResumenDiaPage> {
                               ),
                             ),
                           ),
+                        const SizedBox(height: 12),
+                        
+                        // Clear old sales button
+                        SizedBox(
+                          width: double.infinity,
+                          child: TextButton.icon(
+                            onPressed: _clearOldSales,
+                            icon: const Icon(Icons.delete_outline, size: 18),
+                            label: const Text('Borrar ventas viejas y empezar de nuevo'),
+                            style: TextButton.styleFrom(foregroundColor: Colors.redAccent),
+                          ),
+                        ),
                         const SizedBox(height: 16),
                         
                         // Closing Button (Full Width)

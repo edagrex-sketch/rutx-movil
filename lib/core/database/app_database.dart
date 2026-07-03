@@ -25,7 +25,7 @@ class AppDatabase {
   late VentaDao ventaDao;
   late NotificacionDao notificacionDao;
 
-  static const int _version = 2;
+  static const int _version = 3;
   static const String _dbName = 'rutx_movil.db';
 
   Future<Database> get database async {
@@ -111,12 +111,9 @@ class AppDatabase {
     ventaDao = VentaDao(db);
     notificacionDao = NotificacionDao(db);
 
-    // Auto-seed if ANY table is empty
+    // Auto-seed ONLY if no clients exist (sync will provide real data)
     final clientesCount = Sqflite.firstIntValue(await db.rawQuery('SELECT COUNT(*) FROM clientes')) ?? 0;
-    final productosCount = Sqflite.firstIntValue(await db.rawQuery('SELECT COUNT(*) FROM productos')) ?? 0;
-    final ventasCount = Sqflite.firstIntValue(await db.rawQuery('SELECT COUNT(*) FROM ventas_pendientes')) ?? 0;
-    final notifCount = Sqflite.firstIntValue(await db.rawQuery('SELECT COUNT(*) FROM notificaciones')) ?? 0;
-    if (clientesCount == 0 || productosCount == 0 || ventasCount == 0 || notifCount == 0) {
+    if (clientesCount == 0) {
       await seedDatabase();
     }
   }
@@ -151,48 +148,7 @@ class AppDatabase {
       Notificacion(mensaje: 'Recordatorio cierre|Oficina Central|14:00|', leida: false, fechaCreacion: '2026-07-02 14:00:00'),
     ]);
 
-    // 4. Ventas
-    final today = DateTime.now().toIso8601String().substring(0, 10);
-    await ventaDao.insert(VentaPendiente(
-      ventaMovilId: 'VTA-Mendoza',
-      vendedorId: 7,
-      clienteId: 1,
-      clienteNombre: 'Abarrotes Mendoza',
-      fechaHora: '$today 09:15:00',
-      estado: 'enviada',
-      total: 1480.0,
-      detalles: [],
-    ));
-    await ventaDao.insert(VentaPendiente(
-      ventaMovilId: 'VTA-Roble',
-      vendedorId: 7,
-      clienteId: 2,
-      clienteNombre: 'Minisuper El Roble',
-      fechaHora: '$today 10:40:00',
-      estado: 'enviada',
-      total: 650.0,
-      detalles: [],
-    ));
-    await ventaDao.insert(VentaPendiente(
-      ventaMovilId: 'VTA-DonPepe',
-      vendedorId: 7,
-      clienteId: 3,
-      clienteNombre: 'Tienda Don Pepe',
-      fechaHora: '$today 11:55:00',
-      estado: 'pendiente',
-      total: 390.0,
-      detalles: [],
-    ));
-    await ventaDao.insert(VentaPendiente(
-      ventaMovilId: 'VTA-Reyes',
-      vendedorId: 7,
-      clienteId: 4,
-      clienteNombre: 'Comercial Reyes',
-      fechaHora: '$today 12:30:00',
-      estado: 'error',
-      total: 820.0,
-      detalles: [],
-    ));
+
   }
 
   Future<void> limpiarDatosDelDia() async {

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/constants/api_constants.dart';
+import '../../../../core/database/app_database.dart';
 import '../../../../core/network/sync_result.dart';
 import '../../../../core/storage/local_storage.dart';
 import '../../../../core/theme/app_theme.dart';
@@ -19,6 +20,8 @@ class _DownloadPageState extends State<DownloadPage> {
   String _syncStatus = 'En espera';
   String _productsCount = '-- artículos';
   String _clientsCount = '-- clientes';
+  int _vendedorId = 0;
+  String _vendedorNombre = '';
 
   @override
   void initState() {
@@ -27,7 +30,10 @@ class _DownloadPageState extends State<DownloadPage> {
   }
 
   Future<void> _checkLocalData() async {
-    final hasData = await LocalStorage().hasSyncData();
+    final ls = LocalStorage();
+    _vendedorId = await ls.getVendedorId() ?? 0;
+    _vendedorNombre = await ls.getVendedorNombre() ?? 'Vendedor';
+    final hasData = await ls.hasSyncData();
     if (mounted) {
       setState(() {
         _hasLocalData = hasData;
@@ -35,6 +41,21 @@ class _DownloadPageState extends State<DownloadPage> {
           _productsCount = 'Disponibles en caché';
           _clientsCount = 'Disponibles en caché';
         }
+      });
+    }
+  }
+
+  Future<void> _forceResync() async {
+    final db = AppDatabase();
+    await db.initialize();
+    await db.limpiarDatosDelDia();
+    await LocalStorage().setSyncData(false);
+    if (mounted) {
+      setState(() {
+        _hasLocalData = false;
+        _syncStatus = 'En espera';
+        _productsCount = '-- artículos';
+        _clientsCount = '-- clientes';
       });
     }
   }
@@ -85,7 +106,7 @@ class _DownloadPageState extends State<DownloadPage> {
       _syncStatus = 'Descargando...';
     });
 
-    final result = await SyncRepository().downloadMorningData(7);
+    final result = await SyncRepository().downloadMorningData(_vendedorId);
 
     if (mounted) {
       if (result is SyncSuccess) {
@@ -215,6 +236,13 @@ class _DownloadPageState extends State<DownloadPage> {
                       ),
                   ],
                   const SizedBox(height: 12),
+                  if (_hasLocalData)
+                    TextButton.icon(
+                      onPressed: _forceResync,
+                      icon: const Icon(Icons.refresh, size: 18),
+                      label: const Text('Forzar re-sincronización'),
+                      style: TextButton.styleFrom(foregroundColor: Colors.orange),
+                    ),
                   if (_syncStatus == 'Error')
                     TextButton.icon(
                       onPressed: () {
@@ -229,7 +257,7 @@ class _DownloadPageState extends State<DownloadPage> {
                       style: TextButton.styleFrom(foregroundColor: AppTheme.accentColor),
                     ),
                   const SizedBox(height: 16),
-                  const Text('Ruta Centro • Vendedor #7', style: TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
+                  Text('$_vendedorNombre • Vendedor #$_vendedorId', style: const TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
                   if (ApiConstants.useMock)
                     const Padding(
                       padding: EdgeInsets.only(top: 4),
