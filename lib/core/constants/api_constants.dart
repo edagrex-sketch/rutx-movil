@@ -6,7 +6,7 @@ class ApiConstants {
   static String get baseUrl {
     final port = useMock ? '5048' : '5047';
     if (Platform.isAndroid) {
-      return 'http://10.0.2.2:$port';
+      return 'http://192.168.100.65:$port';
     }
     return 'http://localhost:$port';
   }

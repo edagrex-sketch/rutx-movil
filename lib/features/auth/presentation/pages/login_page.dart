@@ -37,7 +37,8 @@ class _LoginPageState extends State<LoginPage> {
         final db = AppDatabase();
         await db.initialize();
         final clientes = await db.clienteDao.getAll();
-        final hasData = clientes.isNotEmpty;
+        final productos = await db.productDao.getAll();
+        final hasData = clientes.isNotEmpty && productos.isNotEmpty;
         if (!mounted) return;
 
         if (hasData) {
