@@ -10,7 +10,9 @@ import 'daos/notificacion_dao.dart';
 import 'entities/cliente_entity.dart';
 import 'entities/producto_entity.dart';
 import 'entities/venta_pendiente_entity.dart';
+import 'entities/venta_pendiente_entity.dart';
 import 'entities/notificacion_entity.dart';
+import '../constants/api_constants.dart';
 
 class AppDatabase {
   static final AppDatabase _instance = AppDatabase._();
@@ -109,9 +111,9 @@ class AppDatabase {
     ventaDao = VentaDao(db);
     notificacionDao = NotificacionDao(db);
 
-    // Auto-seed if empty
+    // Auto-seed if empty and mock mode is enabled
     final countVal = Sqflite.firstIntValue(await db.rawQuery('SELECT COUNT(*) FROM clientes')) ?? 0;
-    if (countVal == 0) {
+    if (countVal == 0 && ApiConstants.useMock) {
       await seedDatabase();
     }
   }
