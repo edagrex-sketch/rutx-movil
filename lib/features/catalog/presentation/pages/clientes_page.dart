@@ -50,6 +50,7 @@ class _ClientesPageState extends State<ClientesPage> {
       await db.initialize();
       
       final clientesList = await db.clienteDao.getAll();
+      clientesList.sort((a, b) => a.clienteId.compareTo(b.clienteId));
       final ventasList = await db.ventaDao.getAll();
 
       final Map<int, VentaPendiente> visitas = {};
