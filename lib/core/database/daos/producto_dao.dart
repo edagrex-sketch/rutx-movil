@@ -40,8 +40,8 @@ class ProductoDao {
     final maps = await db.query(
       'productos',
       where:
-          '(nombre LIKE ? OR CAST(articulo_id AS TEXT) LIKE ?) AND estatus = ?',
-      whereArgs: ['%$query%', '%$query%', 'A'],
+          '(nombre LIKE ? OR clave LIKE ? OR CAST(articulo_id AS TEXT) LIKE ?) AND estatus = ?',
+      whereArgs: ['%$query%', '%$query%', '%$query%', 'A'],
       orderBy: 'nombre ASC',
     );
     return maps.map((m) => Producto.fromMap(m)).toList();

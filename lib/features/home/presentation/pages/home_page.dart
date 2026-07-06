@@ -3,6 +3,7 @@ import '../../../../core/theme/app_theme.dart';
 import '../../../../core/database/app_database.dart';
 import '../../../../core/network/connectivity_service.dart';
 import '../../../../features/catalog/presentation/pages/clientes_page.dart';
+import '../../../../features/catalog/presentation/pages/catalogo_page.dart';
 import '../../../../features/sales/presentation/pages/ventas_list_page.dart';
 import '../../../../features/summary/presentation/pages/resumen_dia_page.dart';
 import '../../../../features/sales/presentation/pages/nueva_venta_page.dart';
@@ -400,7 +401,14 @@ class _HomePageState extends State<HomePage> {
                         icon: Icons.inventory_2_outlined,
                         iconColor: const Color(0xFF0277BD),
                         bgColor: const Color(0xFFE1F5FE),
-                        onTap: () => setState(() => _selectedIndex = 1),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const CatalogoPage(),
+                            ),
+                          );
+                        },
                       ),
                       _buildQuickAction(
                         title: 'Resumen',
