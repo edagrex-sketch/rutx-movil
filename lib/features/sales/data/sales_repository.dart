@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:dio/dio.dart';
 import '../../../core/database/app_database.dart';
 import '../../../core/database/entities/venta_pendiente_entity.dart';
 import '../../../core/network/connectivity_service.dart';
@@ -38,41 +39,49 @@ class SalesRepository {
       if (todas.isEmpty) return SyncSuccess(clientes: 0, productos: 0);
 
       int enviadas = 0;
+      String? ultimoError;
       for (final v in todas) {
         final result = await _uploadSaleWithRetry(v);
-        if (result) {
+        if (result == 'OK') {
           await db.ventaDao.updateEstado(v.ventaMovilId, 'enviada');
           enviadas++;
         } else {
+          ultimoError = result;
           await db.ventaDao.updateEstado(v.ventaMovilId, 'error');
         }
       }
 
+      if (ultimoError != null && enviadas == 0) {
+        return SyncFailure(mensaje: ultimoError);
+      }
       return SyncSuccess(clientes: 0, productos: enviadas);
     } catch (e) {
       return SyncFailure(mensaje: e.toString());
     }
   }
 
-  Future<bool> _uploadSaleWithRetry(VentaPendiente v) async {
-    const maxRetries = 3;
-    const delays = [Duration(seconds: 2), Duration(seconds: 4), Duration(seconds: 8)];
+  Future<String> _uploadSaleWithRetry(VentaPendiente v) async {
+    const maxRetries = 1; // Reducido a 1 para no esperar tanto al debugear
+    const delays = [Duration(seconds: 2)];
 
     for (int attempt = 0; attempt < maxRetries; attempt++) {
-      final success = await _uploadSale(v);
-      if (success) return true;
+      try {
+        final success = await _uploadSale(v);
+        if (success) return 'OK';
+      } catch (e) {
+        if (attempt == maxRetries - 1) return e.toString();
+      }
       if (attempt < maxRetries - 1) {
         await Future.delayed(delays[attempt]);
       }
     }
-    return false;
+    return 'Error desconocido';
   }
 
   Future<bool> _uploadSale(VentaPendiente v) async {
     try {
       final List<Map<String, dynamic>> details = v.detalles.map((d) => {
         'articulo_id': d['articulo_id'] as int,
-        'nombre': d['nombre'] as String? ?? '',
         'unidades': (d['unidades'] as num).toDouble(),
         'precio_unitario': (d['precio_unitario'] as num).toDouble(),
       }).toList();
@@ -81,15 +90,19 @@ class SalesRepository {
         'venta_movil_id': v.ventaMovilId,
         'vendedor_id': v.vendedorId,
         'cliente_id': v.clienteId,
-        'cliente_nombre': v.clienteNombre,
         'fecha_hora': v.fechaHora,
         'notas': 'Pedido Móvil',
         'detalles': details,
       });
 
       return response.statusCode == 200 || response.statusCode == 201;
+    } on DioException catch (e) {
+      if (e.response != null) {
+        throw Exception('API ERROR: ${e.response?.statusCode} - ${e.response?.data}');
+      }
+      throw Exception('NETWORK ERROR: ${e.message}');
     } catch (e) {
-      return false;
+      throw Exception('APP ERROR: $e');
     }
   }
 }
