@@ -53,15 +53,15 @@ class _HomePageState extends State<HomePage> {
   Future<void> _loadDashboardStats() async {
     if (!mounted) return;
     setState(() => _isLoadingStats = true);
-    
+
     final db = AppDatabase();
     await db.initialize();
-    
+
     final allClients = await db.clienteDao.getAll();
     final totalClients = allClients.length;
     final today = DateTime.now().toIso8601String().substring(0, 10);
     final resumen = await db.ventaDao.getResumenDelDia(today);
-    
+
     Cliente? next;
     for (final c in allClients) {
       if (c.nombreCliente.contains('Don Pepe')) {
@@ -70,7 +70,7 @@ class _HomePageState extends State<HomePage> {
       }
     }
     next ??= allClients.isNotEmpty ? allClients.first : null;
-    
+
     if (mounted) {
       setState(() {
         _totalClientes = totalClients > 0 ? totalClients : 6;
@@ -111,16 +111,26 @@ class _HomePageState extends State<HomePage> {
           children: [
             Container(
               padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: bgColor,
-                shape: BoxShape.circle,
-              ),
+              decoration: BoxDecoration(color: bgColor, shape: BoxShape.circle),
               child: Icon(icon, color: iconColor),
             ),
             const Spacer(),
-            Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppTheme.textPrimary)),
+            Text(
+              title,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+                color: AppTheme.textPrimary,
+              ),
+            ),
             const SizedBox(height: 4),
-            Text(subtitle, style: const TextStyle(color: AppTheme.textSecondary, fontSize: 13)),
+            Text(
+              subtitle,
+              style: const TextStyle(
+                color: AppTheme.textSecondary,
+                fontSize: 13,
+              ),
+            ),
           ],
         ),
       ),
@@ -129,7 +139,7 @@ class _HomePageState extends State<HomePage> {
 
   Widget _buildHomeDashboard() {
     final progress = _totalClientes > 0 ? _visitedCount / _totalClientes : 0.0;
-    
+
     return RefreshIndicator(
       onRefresh: _loadDashboardStats,
       color: AppTheme.accentColor,
@@ -144,27 +154,55 @@ class _HomePageState extends State<HomePage> {
             title: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Buenos días,', style: TextStyle(color: AppTheme.secondaryColor, fontSize: 14)),
+                const Text(
+                  'Buenos días,',
+                  style: TextStyle(
+                    color: AppTheme.secondaryColor,
+                    fontSize: 14,
+                  ),
+                ),
                 const SizedBox(height: 4),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text('Carlos Ríos', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 24)),
+                    const Text(
+                      'Carlos Ríos',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 24,
+                      ),
+                    ),
                     Row(
                       children: [
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
                           decoration: BoxDecoration(
-                            color: _isConnected ? const Color(0xFFE8F5E9) : const Color(0xFFFFEBEE),
+                            color:
+                                _isConnected
+                                    ? const Color(0xFFE8F5E9)
+                                    : const Color(0xFFFFEBEE),
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Row(
                             children: [
-                              Icon(_isConnected ? Icons.wifi : Icons.wifi_off, color: _isConnected ? Colors.green : Colors.red, size: 16),
+                              Icon(
+                                _isConnected ? Icons.wifi : Icons.wifi_off,
+                                color: _isConnected ? Colors.green : Colors.red,
+                                size: 16,
+                              ),
                               const SizedBox(width: 4),
                               Text(
                                 _isConnected ? 'Con señal' : 'Sin señal',
-                                style: TextStyle(color: _isConnected ? Colors.green : Colors.red, fontSize: 12, fontWeight: FontWeight.bold),
+                                style: TextStyle(
+                                  color:
+                                      _isConnected ? Colors.green : Colors.red,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ],
                           ),
@@ -173,11 +211,18 @@ class _HomePageState extends State<HomePage> {
                         Stack(
                           children: [
                             IconButton(
-                              icon: const Icon(Icons.notifications_none, color: Colors.white, size: 28),
+                              icon: const Icon(
+                                Icons.notifications_none,
+                                color: Colors.white,
+                                size: 28,
+                              ),
                               onPressed: () {
                                 Navigator.push(
                                   context,
-                                  MaterialPageRoute(builder: (context) => const NotificationsPage()),
+                                  MaterialPageRoute(
+                                    builder:
+                                        (context) => const NotificationsPage(),
+                                  ),
                                 );
                               },
                             ),
@@ -221,18 +266,38 @@ class _HomePageState extends State<HomePage> {
                 padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
                 child: Row(
                   children: [
-                    const Icon(Icons.location_on_outlined, color: AppTheme.secondaryColor, size: 16),
+                    const Icon(
+                      Icons.location_on_outlined,
+                      color: AppTheme.secondaryColor,
+                      size: 16,
+                    ),
                     const SizedBox(width: 4),
-                    const Text('Ruta Zona Norte', style: TextStyle(color: AppTheme.secondaryColor, fontSize: 14)),
+                    const Text(
+                      'Ruta Zona Norte',
+                      style: TextStyle(
+                        color: AppTheme.secondaryColor,
+                        fontSize: 14,
+                      ),
+                    ),
                     const Padding(
                       padding: EdgeInsets.symmetric(horizontal: 8.0),
-                      child: Text('•', style: TextStyle(color: AppTheme.secondaryColor)),
+                      child: Text(
+                        '•',
+                        style: TextStyle(color: AppTheme.secondaryColor),
+                      ),
                     ),
-                    const Icon(Icons.calendar_today_outlined, color: AppTheme.secondaryColor, size: 16),
+                    const Icon(
+                      Icons.calendar_today_outlined,
+                      color: AppTheme.secondaryColor,
+                      size: 16,
+                    ),
                     const SizedBox(width: 4),
                     Text(
                       DateTime.now().toIso8601String().substring(0, 10),
-                      style: const TextStyle(color: AppTheme.secondaryColor, fontSize: 14),
+                      style: const TextStyle(
+                        color: AppTheme.secondaryColor,
+                        fontSize: 14,
+                      ),
                     ),
                   ],
                 ),
@@ -264,14 +329,31 @@ class _HomePageState extends State<HomePage> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text('Clientes visitados', style: TextStyle(color: AppTheme.textSecondary, fontSize: 14)),
+                              const Text(
+                                'Clientes visitados',
+                                style: TextStyle(
+                                  color: AppTheme.textSecondary,
+                                  fontSize: 14,
+                                ),
+                              ),
                               const SizedBox(height: 8),
                               RichText(
                                 text: TextSpan(
                                   text: '$_visitedCount',
-                                  style: const TextStyle(color: AppTheme.textPrimary, fontSize: 28, fontWeight: FontWeight.bold),
+                                  style: const TextStyle(
+                                    color: AppTheme.textPrimary,
+                                    fontSize: 28,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                   children: [
-                                    TextSpan(text: '/$_totalClientes', style: const TextStyle(color: AppTheme.textSecondary, fontSize: 16, fontWeight: FontWeight.normal)),
+                                    TextSpan(
+                                      text: '/$_totalClientes',
+                                      style: const TextStyle(
+                                        color: AppTheme.textSecondary,
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.normal,
+                                      ),
+                                    ),
                                   ],
                                 ),
                               ),
@@ -281,7 +363,10 @@ class _HomePageState extends State<HomePage> {
                                 child: LinearProgressIndicator(
                                   value: progress.isNaN ? 0.0 : progress,
                                   backgroundColor: AppTheme.lightGrey,
-                                  valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.accentColor),
+                                  valueColor:
+                                      const AlwaysStoppedAnimation<Color>(
+                                        AppTheme.accentColor,
+                                      ),
                                   minHeight: 6,
                                 ),
                               ),
@@ -307,22 +392,44 @@ class _HomePageState extends State<HomePage> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text('Ventas del día', style: TextStyle(color: AppTheme.textSecondary, fontSize: 14)),
+                              const Text(
+                                'Ventas del día',
+                                style: TextStyle(
+                                  color: AppTheme.textSecondary,
+                                  fontSize: 14,
+                                ),
+                              ),
                               const SizedBox(height: 8),
-                              Text('\$${_ventasTotalAmount.toStringAsFixed(0)}', style: const TextStyle(color: AppTheme.textPrimary, fontSize: 28, fontWeight: FontWeight.bold)),
+                              Text(
+                                '\$${_ventasTotalAmount.toStringAsFixed(0)}',
+                                style: const TextStyle(
+                                  color: AppTheme.textPrimary,
+                                  fontSize: 28,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                               const SizedBox(height: 12),
-                              Text('$_visitedCount visitas registradas', style: const TextStyle(color: AppTheme.textSecondary, fontSize: 14)),
+                              Text(
+                                '$_visitedCount visitas registradas',
+                                style: const TextStyle(
+                                  color: AppTheme.textSecondary,
+                                  fontSize: 14,
+                                ),
+                              ),
                             ],
                           ),
                         ),
                       ),
                     ],
                   ),
-                  
+
                   if (_pendingSalesCount > 0) ...[
                     const SizedBox(height: 16),
                     GestureDetector(
-                      onTap: () => setState(() => _selectedIndex = 4), // Go to summary
+                      onTap:
+                          () => setState(
+                            () => _selectedIndex = 4,
+                          ), // Go to summary
                       child: Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
@@ -332,26 +439,51 @@ class _HomePageState extends State<HomePage> {
                         ),
                         child: Row(
                           children: [
-                            const Icon(Icons.warning_amber_rounded, color: Color(0xFFF57C00)),
+                            const Icon(
+                              Icons.warning_amber_rounded,
+                              color: Color(0xFFF57C00),
+                            ),
                             const SizedBox(width: 12),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text('Tienes $_pendingSalesCount ${_pendingSalesCount == 1 ? "venta pendiente" : "ventas pendientes"}', style: const TextStyle(color: Color(0xFFE65100), fontWeight: FontWeight.bold)),
-                                  const Text('Se enviarán cuando haya señal', style: TextStyle(color: Color(0xFFE65100), fontSize: 13)),
+                                  Text(
+                                    'Tienes $_pendingSalesCount ${_pendingSalesCount == 1 ? "venta pendiente" : "ventas pendientes"}',
+                                    style: const TextStyle(
+                                      color: Color(0xFFE65100),
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const Text(
+                                    'Se enviarán cuando haya señal',
+                                    style: TextStyle(
+                                      color: Color(0xFFE65100),
+                                      fontSize: 13,
+                                    ),
+                                  ),
                                 ],
                               ),
                             ),
-                            const Icon(Icons.chevron_right, color: Color(0xFFF57C00)),
+                            const Icon(
+                              Icons.chevron_right,
+                              color: Color(0xFFF57C00),
+                            ),
                           ],
                         ),
                       ),
                     ),
                   ],
-                  
+
                   const SizedBox(height: 24),
-                  const Text('ACCIONES RÁPIDAS', style: TextStyle(color: AppTheme.textSecondary, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
+                  const Text(
+                    'ACCIONES RÁPIDAS',
+                    style: TextStyle(
+                      color: AppTheme.textSecondary,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1.2,
+                    ),
+                  ),
                   const SizedBox(height: 16),
                   GridView.count(
                     crossAxisCount: 2,
@@ -376,23 +508,30 @@ class _HomePageState extends State<HomePage> {
                         iconColor: const Color(0xFFE65100),
                         bgColor: const Color(0xFFFBE9E7),
                         onTap: () async {
-                          final activeCliente = _nextCliente ?? Cliente(
-                            clienteId: 3,
-                            nombreCliente: 'Tienda Don Pepe',
-                            calle: 'Av. Siempre Viva 123',
-                            colonia: 'Centro',
-                            codigoPostal: '37000',
-                            limiteCredito: 5000.0,
-                          );
+                          final activeCliente =
+                              _nextCliente ??
+                              Cliente(
+                                clienteId: 3,
+                                nombreCliente: 'Tienda Don Pepe',
+                                calle: 'Av. Siempre Viva 123',
+                                colonia: 'Centro',
+                                codigoPostal: '37000',
+                                limiteCredito: 5000.0,
+                              );
                           final result = await Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => NuevaVentaPage(cliente: activeCliente),
+                              builder:
+                                  (context) =>
+                                      NuevaVentaPage(cliente: activeCliente),
                             ),
                           );
-                          if (result == true) {
-                            _loadDashboardStats();
+                          if (result == 'view_clients') {
+                            setState(() => _selectedIndex = 1); // Tab Clientes
+                          } else if (result == 'view_pending') {
+                            setState(() => _selectedIndex = 3); // Tab Ventas
                           }
+                          _loadDashboardStats();
                         },
                       ),
                       _buildQuickAction(
@@ -420,9 +559,16 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ],
                   ),
-                  
+
                   const SizedBox(height: 24),
-                  const Text('PRÓXIMO CLIENTE', style: TextStyle(color: AppTheme.textSecondary, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
+                  const Text(
+                    'PRÓXIMO CLIENTE',
+                    style: TextStyle(
+                      color: AppTheme.textSecondary,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1.2,
+                    ),
+                  ),
                   const SizedBox(height: 16),
                   Container(
                     padding: const EdgeInsets.all(16),
@@ -447,7 +593,14 @@ class _HomePageState extends State<HomePage> {
                             shape: BoxShape.circle,
                           ),
                           child: const Center(
-                            child: Text('DP', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
+                            child: Text(
+                              'DP',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 18,
+                              ),
+                            ),
                           ),
                         ),
                         const SizedBox(width: 16),
@@ -455,23 +608,44 @@ class _HomePageState extends State<HomePage> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: const [
-                              Text('Tienda Don Pepe', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppTheme.textPrimary)),
+                              Text(
+                                'Tienda Don Pepe',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                  color: AppTheme.textPrimary,
+                                ),
+                              ),
                               SizedBox(height: 4),
-                              Text('Av. Siempre Viva 123', style: TextStyle(color: AppTheme.textSecondary, fontSize: 14)),
+                              Text(
+                                'Av. Siempre Viva 123',
+                                style: TextStyle(
+                                  color: AppTheme.textSecondary,
+                                  fontSize: 14,
+                                ),
+                              ),
                             ],
                           ),
                         ),
-                        const Icon(Icons.arrow_drop_down, color: AppTheme.textSecondary),
+                        const Icon(
+                          Icons.arrow_drop_down,
+                          color: AppTheme.textSecondary,
+                        ),
                       ],
                     ),
                   ),
-                  
+
                   const SizedBox(height: 24),
                   GestureDetector(
-                    onTap: () => setState(() => _selectedIndex = 4), // Go to summary
+                    onTap:
+                        () =>
+                            setState(() => _selectedIndex = 4), // Go to summary
                     child: Container(
                       width: double.infinity,
-                      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 14,
+                        horizontal: 16,
+                      ),
                       decoration: BoxDecoration(
                         color: const Color(0xFFEBF5FE),
                         borderRadius: BorderRadius.circular(12),
@@ -520,23 +694,28 @@ class _HomePageState extends State<HomePage> {
         currentIndex: _selectedIndex,
         onTap: (index) async {
           if (index == 2) {
-            final activeCliente = _nextCliente ?? Cliente(
-              clienteId: 3,
-              nombreCliente: 'Tienda Don Pepe',
-              calle: 'Av. Siempre Viva 123',
-              colonia: 'Centro',
-              codigoPostal: '37000',
-              limiteCredito: 5000.0,
-            );
+            final activeCliente =
+                _nextCliente ??
+                Cliente(
+                  clienteId: 3,
+                  nombreCliente: 'Tienda Don Pepe',
+                  calle: 'Av. Siempre Viva 123',
+                  colonia: 'Centro',
+                  codigoPostal: '37000',
+                  limiteCredito: 5000.0,
+                );
             final result = await Navigator.push(
               context,
               MaterialPageRoute(
                 builder: (context) => NuevaVentaPage(cliente: activeCliente),
               ),
             );
-            if (result == true) {
-              _loadDashboardStats();
+            if (result == 'view_clients') {
+              setState(() => _selectedIndex = 1); // Tab Clientes
+            } else if (result == 'view_pending') {
+              setState(() => _selectedIndex = 3); // Tab Ventas
             }
+            _loadDashboardStats();
           } else {
             setState(() {
               _selectedIndex = index;
@@ -551,8 +730,14 @@ class _HomePageState extends State<HomePage> {
         selectedFontSize: 12,
         unselectedFontSize: 12,
         items: [
-          const BottomNavigationBarItem(icon: Icon(Icons.home_outlined), label: 'Inicio'),
-          const BottomNavigationBarItem(icon: Icon(Icons.people_outline), label: 'Clientes'),
+          const BottomNavigationBarItem(
+            icon: Icon(Icons.home_outlined),
+            label: 'Inicio',
+          ),
+          const BottomNavigationBarItem(
+            icon: Icon(Icons.people_outline),
+            label: 'Clientes',
+          ),
           BottomNavigationBarItem(
             icon: Container(
               margin: const EdgeInsets.only(bottom: 4),
@@ -561,12 +746,22 @@ class _HomePageState extends State<HomePage> {
                 color: AppTheme.accentColor,
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.shopping_cart_outlined, color: Colors.white, size: 20),
+              child: const Icon(
+                Icons.shopping_cart_outlined,
+                color: Colors.white,
+                size: 20,
+              ),
             ),
             label: 'Vender',
           ),
-          const BottomNavigationBarItem(icon: Icon(Icons.receipt_long_outlined), label: 'Ventas'),
-          const BottomNavigationBarItem(icon: Icon(Icons.more_horiz), label: 'Más'),
+          const BottomNavigationBarItem(
+            icon: Icon(Icons.receipt_long_outlined),
+            label: 'Ventas',
+          ),
+          const BottomNavigationBarItem(
+            icon: Icon(Icons.more_horiz),
+            label: 'Más',
+          ),
         ],
       ),
     );
