@@ -44,193 +44,389 @@ class _NotificationsPageState extends State<NotificationsPage> {
     _loadNotifications();
   }
 
+  void _confirmNotification(int id, String newMensaje) async {
+    final db = AppDatabase();
+    await db.initialize();
+    await db.notificacionDao.updateMensaje(id, newMensaje);
+    _loadNotifications();
+  }
+
+  void _markAllAsRead() async {
+    final db = AppDatabase();
+    await db.initialize();
+    await db.notificacionDao.markAllAsRead();
+    _loadNotifications();
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Todas las notificaciones marcadas como leídas'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
+  void _resetSeeders() async {
+    final db = AppDatabase();
+    await db.initialize();
+    await db.notificacionDao.deleteAll();
+    await db.seedDatabase();
+    await _loadNotifications();
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Notificaciones restablecidas con datos de prueba'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppTheme.backgroundColor,
-      appBar: AppBar(
-        backgroundColor: AppTheme.primaryColor,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: const Text(
-          'Notificaciones',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20),
-        ),
-      ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: AppTheme.accentColor))
-          : Column(
-              children: [
-                // Unread Count Banner
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFE3F2FD), // Light blue
-                      borderRadius: BorderRadius.circular(12),
+    // Filter lists
+    final pending = _notifications.where((n) {
+      final parts = n.mensaje.split('|');
+      final status = parts.length > 3 ? parts[3] : '';
+      return !n.leida || status != 'Confirmado';
+    }).toList();
+
+    final history = _notifications.where((n) {
+      final parts = n.mensaje.split('|');
+      final status = parts.length > 3 ? parts[3] : '';
+      return n.leida && status == 'Confirmado';
+    }).toList();
+
+    return DefaultTabController(
+      length: 2,
+      child: Scaffold(
+        backgroundColor: AppTheme.backgroundColor,
+        appBar: AppBar(
+          backgroundColor: AppTheme.primaryColor,
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            onPressed: () => Navigator.pop(context),
+          ),
+          title: const Text(
+            'Notificaciones',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20),
+          ),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.restore, color: Colors.white),
+              tooltip: 'Restablecer datos de prueba',
+              onPressed: _resetSeeders,
+            ),
+            if (_unreadCount > 0)
+              IconButton(
+                icon: const Icon(Icons.done_all, color: Colors.white),
+                tooltip: 'Marcar todas como leídas',
+                onPressed: _markAllAsRead,
+              ),
+          ],
+          bottom: const TabBar(
+            labelColor: Colors.white,
+            unselectedLabelColor: Colors.white60,
+            indicatorColor: AppTheme.accentColor,
+            indicatorWeight: 3,
+            tabs: [
+              Tab(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.pending_actions),
+                    SizedBox(width: 8),
+                    Text(
+                      'Pendientes',
+                      style: TextStyle(fontWeight: FontWeight.bold),
                     ),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.notifications_none_outlined, color: AppTheme.primaryColor),
-                        const SizedBox(width: 12),
-                        Text(
-                          '$_unreadCount mensajes sin leer',
-                          style: const TextStyle(
-                            color: AppTheme.primaryColor,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 15,
-                          ),
+                  ],
+                ),
+              ),
+              Tab(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.history),
+                    SizedBox(width: 8),
+                    Text(
+                      'Historial',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        body: _isLoading
+            ? const Center(child: CircularProgressIndicator(color: AppTheme.accentColor))
+            : Column(
+                children: [
+                  // Unread Count Banner (Only shown if there are unread items)
+                  if (_unreadCount > 0)
+                    Padding(
+                      padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 16.0),
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        decoration: BoxDecoration(
+                          color: AppTheme.primaryColor.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: AppTheme.primaryColor.withOpacity(0.2)),
                         ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.notifications_active, color: AppTheme.primaryColor),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                'Tienes $_unreadCount mensajes sin leer',
+                                style: const TextStyle(
+                                  color: AppTheme.primaryColor,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 15,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  
+                  // Tab contents
+                  Expanded(
+                    child: TabBarView(
+                      children: [
+                        _buildNotificationsList(pending, isPendingTab: true),
+                        _buildNotificationsList(history, isPendingTab: false),
                       ],
                     ),
                   ),
+                ],
+              ),
+      ),
+    );
+  }
+
+  Widget _buildNotificationsList(List<Notificacion> list, {required bool isPendingTab}) {
+    if (list.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              isPendingTab ? Icons.assignment_turned_in_outlined : Icons.history_toggle_off,
+              size: 64,
+              color: AppTheme.textSecondary.withOpacity(0.5),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              isPendingTab
+                  ? 'No tienes notificaciones pendientes.'
+                  : 'Historial de notificaciones vacío.',
+              style: const TextStyle(color: AppTheme.textSecondary, fontSize: 16),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: list.length,
+      itemBuilder: (context, index) {
+        return _buildNotificationCard(list[index]);
+      },
+    );
+  }
+
+  Widget _buildNotificationCard(Notificacion n) {
+    final parts = n.mensaje.split('|');
+    final title = parts[0];
+    final sender = parts.length > 1 ? parts[1] : 'Oficina';
+    final time = parts.length > 2 ? parts[2] : '00:00';
+    final status = parts.length > 3 ? parts[3] : '';
+
+    final isUnread = !n.leida;
+    final isConfirmed = status == 'Confirmado';
+    final avatarLetter = sender.isNotEmpty ? sender[0].toUpperCase() : 'O';
+
+    return Card(
+      color: Colors.white,
+      surfaceTintColor: Colors.white,
+      margin: const EdgeInsets.only(bottom: 12),
+      elevation: isUnread ? 2 : 1,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(
+          color: isUnread ? AppTheme.accentColor.withOpacity(0.3) : AppTheme.lightGrey,
+          width: isUnread ? 1.5 : 1,
+        ),
+      ),
+      child: Container(
+        decoration: BoxDecoration(
+          border: Border(
+            left: BorderSide(
+              color: isUnread
+                  ? AppTheme.accentColor
+                  : (isConfirmed ? Colors.green : AppTheme.lightGrey),
+              width: 5,
+            ),
+          ),
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(12),
+            bottomLeft: Radius.circular(12),
+          ),
+        ),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12),
+          onTap: () {
+            if (isUnread && n.id != null) {
+              _markAsRead(n.id!);
+            }
+          },
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Icon / Letter Indicator
+                Container(
+                  width: 42,
+                  height: 42,
+                  decoration: BoxDecoration(
+                    color: isUnread
+                        ? AppTheme.primaryColor
+                        : AppTheme.lightGrey.withOpacity(0.5),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Center(
+                    child: Text(
+                      avatarLetter,
+                      style: TextStyle(
+                        color: isUnread ? Colors.white : AppTheme.textPrimary,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
                 ),
+                const SizedBox(width: 16),
 
-                // Notifications List
+                // Details Column
                 Expanded(
-                  child: _notifications.isEmpty
-                      ? const Center(
-                          child: Text(
-                            'No tienes notificaciones.',
-                            style: TextStyle(color: AppTheme.textSecondary),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Header Row (Sender & Time)
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              sender,
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                                color: isUnread ? AppTheme.primaryColor : AppTheme.textPrimary,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
-                        )
-                      : ListView.builder(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          itemCount: _notifications.length,
-                          itemBuilder: (context, index) {
-                            final n = _notifications[index];
-                            final parts = n.mensaje.split('|');
-                            final title = parts[0];
-                            final sender = parts.length > 1 ? parts[1] : 'Sistema';
-                            final time = parts.length > 2 ? parts[2] : '00:00';
-                            final status = parts.length > 3 ? parts[3] : '';
+                          const SizedBox(width: 8),
+                          Text(
+                            time,
+                            style: const TextStyle(
+                              color: AppTheme.textSecondary,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
 
-                            final isUnread = !n.leida;
-                            final avatarLetter = sender.isNotEmpty ? sender[0].toUpperCase() : 'N';
+                      // Title/Message
+                      Text(
+                        title,
+                        style: TextStyle(
+                          fontWeight: isUnread ? FontWeight.bold : FontWeight.normal,
+                          fontSize: 15,
+                          color: AppTheme.textPrimary,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
 
-                            return GestureDetector(
-                              onTap: () {
-                                if (isUnread && n.id != null) {
-                                  _markAsRead(n.id!);
-                                }
-                              },
-                              child: Container(
-                                margin: const EdgeInsets.only(bottom: 12),
-                                padding: const EdgeInsets.all(16),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(16),
-                                  border: Border.all(color: AppTheme.lightGrey),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withOpacity(0.01),
-                                      blurRadius: 10,
-                                      offset: const Offset(0, 4),
-                                    ),
-                                  ],
+                      // Confirmation / Status Row
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          // Status label or Action Button
+                          if (isConfirmed)
+                            const Row(
+                              children: [
+                                Icon(Icons.check_circle, color: Colors.green, size: 18),
+                                SizedBox(width: 6),
+                                Text(
+                                  'Confirmado',
+                                  style: TextStyle(
+                                    color: Colors.green,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 13,
+                                  ),
                                 ),
-                                child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    // Avatar
-                                    Container(
-                                      width: 40,
-                                      height: 40,
-                                      decoration: BoxDecoration(
-                                        color: isUnread
-                                            ? AppTheme.primaryColor
-                                            : const Color(0xFFE0E0E0),
-                                        shape: BoxShape.circle,
-                                      ),
-                                      child: Center(
-                                        child: Text(
-                                          avatarLetter,
-                                          style: TextStyle(
-                                            color: isUnread ? Colors.white : AppTheme.textPrimary,
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 16,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 16),
-
-                                    // Notification Details
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Row(
-                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                            children: [
-                                              Expanded(
-                                                child: Text(
-                                                  title,
-                                                  style: const TextStyle(
-                                                    fontWeight: FontWeight.bold,
-                                                    fontSize: 16,
-                                                    color: AppTheme.textPrimary,
-                                                  ),
-                                                  overflow: TextOverflow.ellipsis,
-                                                ),
-                                              ),
-                                              const SizedBox(width: 8),
-                                              Text(
-                                                time,
-                                                style: const TextStyle(
-                                                  color: AppTheme.textSecondary,
-                                                  fontSize: 13,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                          const SizedBox(height: 4),
-                                          Text(
-                                            sender,
-                                            style: const TextStyle(
-                                              color: AppTheme.textSecondary,
-                                              fontSize: 14,
-                                            ),
-                                          ),
-                                          if (status.isNotEmpty) ...[
-                                            const SizedBox(height: 8),
-                                            Row(
-                                              children: [
-                                                const Icon(
-                                                  Icons.check_circle_outline,
-                                                  color: Colors.green,
-                                                  size: 16,
-                                                ),
-                                                const SizedBox(width: 4),
-                                                Text(
-                                                  status,
-                                                  style: const TextStyle(
-                                                    color: Colors.green,
-                                                    fontWeight: FontWeight.bold,
-                                                    fontSize: 13,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ],
-                                        ],
-                                      ),
-                                    ),
-                                  ],
+                              ],
+                            )
+                          else
+                            TextButton.icon(
+                              icon: const Icon(Icons.check_circle_outline, size: 18),
+                              label: const Text('Confirmar Recibido'),
+                              style: TextButton.styleFrom(
+                                backgroundColor: AppTheme.accentColor.withOpacity(0.1),
+                                foregroundColor: AppTheme.accentColor,
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                minimumSize: Size.zero,
+                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
                                 ),
                               ),
-                            );
-                          },
-                        ),
+                              onPressed: () {
+                                final newMsg = '$title|$sender|$time|Confirmado';
+                                if (n.id != null) {
+                                  _confirmNotification(n.id!, newMsg);
+                                }
+                              },
+                            ),
+
+                          // Unread badge
+                          if (isUnread)
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: AppTheme.accentColor,
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: const Text(
+                                'NUEVO',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
+          ),
+        ),
+      ),
     );
   }
 }

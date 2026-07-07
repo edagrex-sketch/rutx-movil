@@ -53,6 +53,15 @@ class NotificacionDao {
     await db.update('notificaciones', {'leida': 1});
   }
 
+  Future<void> updateMensaje(int id, String nuevoMensaje) async {
+    await db.update(
+      'notificaciones',
+      {'mensaje': nuevoMensaje, 'leida': 1},
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+
   Future<void> deleteAll() async {
     await db.delete('notificaciones');
   }

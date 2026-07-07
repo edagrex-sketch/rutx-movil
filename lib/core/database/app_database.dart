@@ -144,8 +144,12 @@ class AppDatabase {
     await notificacionDao.insertAll([
       Notificacion(mensaje: 'Promoción refrescos hoy|Oficina Central|08:00|Confirmado', leida: true, fechaCreacion: '2026-07-02 08:00:00'),
       Notificacion(mensaje: 'Meta del día actualizada|Gerente de Ventas|09:30|', leida: true, fechaCreacion: '2026-07-02 09:30:00'),
-      Notificacion(mensaje: 'Producto sin stock|Almacén|10:15|', leida: false, fechaCreacion: '2026-07-02 10:15:00'),
-      Notificacion(mensaje: 'Recordatorio cierre|Oficina Central|14:00|', leida: false, fechaCreacion: '2026-07-02 14:00:00'),
+      Notificacion(mensaje: 'Producto sin stock: Refresco Naranja 600ml|Almacén|10:15|', leida: false, fechaCreacion: '2026-07-02 10:15:00'),
+      Notificacion(mensaje: 'Recordatorio de cierre obligatorio de jornada|Oficina Central|14:00|', leida: false, fechaCreacion: '2026-07-02 14:00:00'),
+      Notificacion(mensaje: 'Aviso: Actualización obligatoria de precios de gasolina|Administración|11:00|', leida: true, fechaCreacion: '2026-07-02 11:00:00'),
+      Notificacion(mensaje: 'Reunión de urgencia con equipo de ventas a las 16:00|Dirección General|13:00|', leida: false, fechaCreacion: '2026-07-02 13:00:00'),
+      Notificacion(mensaje: 'Nueva ruta asignada para mañana: Sector Norte|Logística|12:30|Confirmado', leida: true, fechaCreacion: '2026-07-02 12:30:00'),
+      Notificacion(mensaje: 'Bono mensual por efectividad liberado|Recursos Humanos|09:00|Confirmado', leida: true, fechaCreacion: '2026-07-02 09:00:00'),
     ]);
 
 
