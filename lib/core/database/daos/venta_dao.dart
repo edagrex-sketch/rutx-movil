@@ -84,6 +84,14 @@ class VentaDao {
       WHERE fecha_hora LIKE ?
     ''', ['$fecha%']);
 
+    int piezasVendidas = 0;
+    final ventas = await getDelDia(fecha);
+    for (var venta in ventas) {
+      for (var det in venta.detalles) {
+        piezasVendidas += (det['unidades'] as num?)?.toInt() ?? 0;
+      }
+    }
+
     if (result.isEmpty) {
       return {
         'total_ventas': 0,
@@ -91,9 +99,13 @@ class VentaDao {
         'pendientes': 0,
         'enviadas': 0,
         'con_error': 0,
+        'piezas_vendidas': piezasVendidas,
       };
     }
-    return result.first;
+    
+    final map = Map<String, dynamic>.from(result.first);
+    map['piezas_vendidas'] = piezasVendidas;
+    return map;
   }
 
   Future<void> deleteAll() async {
