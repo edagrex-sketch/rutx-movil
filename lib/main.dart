@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'app/app.dart';
 import 'core/database/database_service.dart';
 import 'core/network/sync_service.dart';
+import 'core/network/notification_polling_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,6 +22,7 @@ void main() async {
   await databaseService.initialize();
 
   SyncService().start();
+  NotificationPollingService().start();
 
   runApp(const RutxApp());
 }
