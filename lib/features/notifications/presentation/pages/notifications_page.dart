@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_theme.dart';
-import '../../../../core/database/app_database.dart';
 import '../../../../core/database/entities/notificacion_entity.dart';
+import '../../../../core/network/notification_polling_service.dart';
+import '../../data/repositories/notification_repository.dart';
 
 class NotificationsPage extends StatefulWidget {
   const NotificationsPage({Key? key}) : super(key: key);
@@ -11,22 +13,33 @@ class NotificationsPage extends StatefulWidget {
 }
 
 class _NotificationsPageState extends State<NotificationsPage> {
+  final NotificationRepository _repository = NotificationRepository();
+  final NotificationPollingService _pollingService = NotificationPollingService();
   List<Notificacion> _notifications = [];
   int _unreadCount = 0;
   bool _isLoading = true;
+  StreamSubscription<int>? _subscription;
 
   @override
   void initState() {
     super.initState();
     _loadNotifications();
+    _subscription = _pollingService.countStream.listen((count) {
+      if (mounted) {
+        _loadNotifications();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _subscription?.cancel();
+    super.dispose();
   }
 
   Future<void> _loadNotifications() async {
-    final db = AppDatabase();
-    await db.initialize();
-
-    final list = await db.notificacionDao.getAll();
-    final unread = await db.notificacionDao.countNoLeidas();
+    final list = await _repository.getAll();
+    final unread = await _repository.getUnreadCount();
 
     if (mounted) {
       setState(() {
@@ -38,23 +51,17 @@ class _NotificationsPageState extends State<NotificationsPage> {
   }
 
   void _markAsRead(int id) async {
-    final db = AppDatabase();
-    await db.initialize();
-    await db.notificacionDao.markAsRead(id);
+    await _repository.markAsRead(id);
     _loadNotifications();
   }
 
   void _confirmNotification(int id, String newMensaje) async {
-    final db = AppDatabase();
-    await db.initialize();
-    await db.notificacionDao.updateMensaje(id, newMensaje);
+    await _repository.updateMensaje(id, newMensaje);
     _loadNotifications();
   }
 
   void _markAllAsRead() async {
-    final db = AppDatabase();
-    await db.initialize();
-    await db.notificacionDao.markAllAsRead();
+    await _repository.markAllAsRead();
     _loadNotifications();
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -67,10 +74,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
   }
 
   void _resetSeeders() async {
-    final db = AppDatabase();
-    await db.initialize();
-    await db.notificacionDao.deleteAll();
-    await db.seedDatabase();
+    await _repository.reseed();
     await _loadNotifications();
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -84,7 +88,6 @@ class _NotificationsPageState extends State<NotificationsPage> {
 
   @override
   Widget build(BuildContext context) {
-    // Filter lists
     final pending = _notifications.where((n) {
       final parts = n.mensaje.split('|');
       final status = parts.length > 3 ? parts[3] : '';
@@ -164,7 +167,6 @@ class _NotificationsPageState extends State<NotificationsPage> {
             ? const Center(child: CircularProgressIndicator(color: AppTheme.accentColor))
             : Column(
                 children: [
-                  // Unread Count Banner (Only shown if there are unread items)
                   if (_unreadCount > 0)
                     Padding(
                       padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 16.0),
@@ -194,8 +196,6 @@ class _NotificationsPageState extends State<NotificationsPage> {
                         ),
                       ),
                     ),
-                  
-                  // Tab contents
                   Expanded(
                     child: TabBarView(
                       children: [
@@ -292,7 +292,6 @@ class _NotificationsPageState extends State<NotificationsPage> {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Icon / Letter Indicator
                 Container(
                   width: 42,
                   height: 42,
@@ -314,13 +313,10 @@ class _NotificationsPageState extends State<NotificationsPage> {
                   ),
                 ),
                 const SizedBox(width: 16),
-
-                // Details Column
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Header Row (Sender & Time)
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -346,8 +342,6 @@ class _NotificationsPageState extends State<NotificationsPage> {
                         ],
                       ),
                       const SizedBox(height: 6),
-
-                      // Title/Message
                       Text(
                         title,
                         style: TextStyle(
@@ -357,12 +351,9 @@ class _NotificationsPageState extends State<NotificationsPage> {
                         ),
                       ),
                       const SizedBox(height: 12),
-
-                      // Confirmation / Status Row
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          // Status label or Action Button
                           if (isConfirmed)
                             const Row(
                               children: [
@@ -399,8 +390,6 @@ class _NotificationsPageState extends State<NotificationsPage> {
                                 }
                               },
                             ),
-
-                          // Unread badge
                           if (isUnread)
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
