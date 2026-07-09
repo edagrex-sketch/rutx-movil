@@ -88,7 +88,6 @@ class _NotificationsPageState extends State<NotificationsPage> {
 
   @override
   Widget build(BuildContext context) {
-    // Filter lists
     final pending = _notifications.where((n) {
       final parts = n.mensaje.split('|');
       final status = parts.length > 3 ? parts[3] : '';
@@ -168,7 +167,6 @@ class _NotificationsPageState extends State<NotificationsPage> {
             ? const Center(child: CircularProgressIndicator(color: AppTheme.accentColor))
             : Column(
                 children: [
-                  // Unread Count Banner (Only shown if there are unread items)
                   if (_unreadCount > 0)
                     Padding(
                       padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 16.0),
@@ -198,7 +196,6 @@ class _NotificationsPageState extends State<NotificationsPage> {
                         ),
                       ),
                     ),
-                  // Tab contents
                   Expanded(
                     child: TabBarView(
                       children: [
@@ -295,7 +292,6 @@ class _NotificationsPageState extends State<NotificationsPage> {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Icon / Letter Indicator
                 Container(
                   width: 42,
                   height: 42,
@@ -317,13 +313,10 @@ class _NotificationsPageState extends State<NotificationsPage> {
                   ),
                 ),
                 const SizedBox(width: 16),
-
-                // Details Column
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Header Row (Sender & Time)
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -349,8 +342,6 @@ class _NotificationsPageState extends State<NotificationsPage> {
                         ],
                       ),
                       const SizedBox(height: 6),
-
-                      // Title/Message
                       Text(
                         title,
                         style: TextStyle(
@@ -360,12 +351,9 @@ class _NotificationsPageState extends State<NotificationsPage> {
                         ),
                       ),
                       const SizedBox(height: 12),
-
-                      // Confirmation / Status Row
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          // Status label or Action Button
                           if (isConfirmed)
                             const Row(
                               children: [
@@ -402,8 +390,6 @@ class _NotificationsPageState extends State<NotificationsPage> {
                                 }
                               },
                             ),
-
-                          // Unread badge
                           if (isUnread)
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
