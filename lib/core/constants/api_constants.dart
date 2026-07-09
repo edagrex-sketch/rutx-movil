@@ -2,7 +2,8 @@ import 'dart:io';
 
 class ApiConstants {
   static bool useMock = false;
-  static bool useLocalIp = true; // Cambia a false si vuelves a usar el emulador (10.0.2.2)
+  static bool useLocalIp =
+      false; // Cambia a false si vuelves a usar el emulador (10.0.2.2)
 
   static String get baseUrl {
     final port = useMock ? '5048' : '5047';

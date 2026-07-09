@@ -25,7 +25,7 @@ class _ResumenDiaPageState extends State<ResumenDiaPage> {
   bool _isSyncing = false;
 
   int _pendientesCount = 0;
-  
+
   // Variables de métricas
   double _montoTotal = 0.0;
   int _totalVentas = 0;
@@ -81,9 +81,11 @@ class _ResumenDiaPageState extends State<ResumenDiaPage> {
       setState(() => _isSyncing = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(_pendientesCount > 0 
-            ? 'Aún hay ventas sin sincronizar. Verifica que los clientes existan en el servidor.'
-            : 'Sincronización completada'),
+          content: Text(
+            _pendientesCount > 0
+                ? 'Aún hay ventas sin sincronizar. Verifica que los clientes existan en el servidor.'
+                : 'Sincronización completada',
+          ),
           backgroundColor: _pendientesCount > 0 ? Colors.orange : Colors.green,
         ),
       );
@@ -99,27 +101,40 @@ class _ResumenDiaPageState extends State<ResumenDiaPage> {
 
   void _handleCerrarJornada() async {
     try {
+      // 1. Forzar sincronización de pendientes ANTES de preguntar nada
+      if (_pendientesCount > 0) {
+        setState(() => _isSyncing = true);
+        await _salesRepository.syncPendingSales();
+        await _loadVentas();
+        setState(() => _isSyncing = false);
+      }
+
+      // 2. Si TODAVÍA quedan pendientes (sin señal o error real), avisar y dejar decidir
       if (_pendientesCount > 0) {
         final confirm = await showDialog<bool>(
           context: context,
-          builder: (context) => AlertDialog(
-            title: const Text('Ventas pendientes'),
-            content: Text(
-              'Tienes $_pendientesCount ventas pendientes de sincronizar. '
-              'Si cierras la jornada ahora, se perderán permanentemente. ¿Deseas continuar?'
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context, false),
-                child: const Text('Cancelar'),
+          builder:
+              (context) => AlertDialog(
+                title: const Text('Ventas sin sincronizar'),
+                content: Text(
+                  'No se pudieron enviar $_pendientesCount ventas (sin conexión o error). '
+                  'Quedarán guardadas localmente como pendientes y NO se perderán, '
+                  'pero el día se cerrará. ¿Deseas continuar?',
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context, false),
+                    child: const Text('Cancelar'),
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.pop(context, true),
+                    style: TextButton.styleFrom(
+                      foregroundColor: Colors.redAccent,
+                    ),
+                    child: const Text('Cerrar de todos modos'),
+                  ),
+                ],
               ),
-              TextButton(
-                onPressed: () => Navigator.pop(context, true),
-                style: TextButton.styleFrom(foregroundColor: Colors.redAccent),
-                child: const Text('Sí, perder datos y cerrar'),
-              ),
-            ],
-          ),
         );
         if (confirm != true) return;
       }
@@ -133,13 +148,21 @@ class _ResumenDiaPageState extends State<ResumenDiaPage> {
 
       final db = AppDatabase();
       await db.initialize();
-      
-      try {
-        await _summaryRepository.sendClosingData(7, _ventas);
-      } catch (e) {
-        print('Error al enviar datos de cierre al servidor: $e');
+
+      final vendedorId = await LocalStorage().getVendedorId();
+      if (vendedorId != null) {
+        try {
+          await _summaryRepository.sendClosingData(vendedorId, _ventas);
+        } catch (e) {
+          print('Error al enviar datos de cierre al servidor: $e');
+        }
       }
 
+      // 3. Marcar el día como cerrado ANTES de limpiar datos
+      final today = DateTime.now().toIso8601String().substring(0, 10);
+      await LocalStorage().setDiaCerrado(today);
+
+      // 4. Ahora sí, limpiar y desloguear
       await db.limpiarDatosDelDia();
       await LocalStorage().clearToken();
       await LocalStorage().setSyncData(false);
@@ -169,49 +192,63 @@ class _ResumenDiaPageState extends State<ResumenDiaPage> {
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
       body: Column(
-          children: [
-            // Cabecera: Contenedor de Métricas Reutilizable
-            SummaryMetricsCard(
-              totalVentas: _montoTotal,
-              clientesVisitados: _totalVentas,
-              piezasVendidas: _piezasVendidas,
-            ),
-            
-            // Cuerpo: Lista de Ventas
-            Expanded(
-              child: _isLoading
-                  ? const Center(child: CircularProgressIndicator(color: AppTheme.accentColor))
-                  : SingleChildScrollView(
+        children: [
+          // Cabecera: Contenedor de Métricas Reutilizable
+          SummaryMetricsCard(
+            totalVentas: _montoTotal,
+            clientesVisitados: _totalVentas,
+            piezasVendidas: _piezasVendidas,
+          ),
+
+          // Cuerpo: Lista de Ventas
+          Expanded(
+            child:
+                _isLoading
+                    ? const Center(
+                      child: CircularProgressIndicator(
+                        color: AppTheme.accentColor,
+                      ),
+                    )
+                    : SingleChildScrollView(
                       padding: const EdgeInsets.all(20.0),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const Text(
                             'VENTAS DEL DÍA',
-                            style: TextStyle(color: AppTheme.textSecondary, fontWeight: FontWeight.bold, letterSpacing: 1.2),
+                            style: TextStyle(
+                              color: AppTheme.textSecondary,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 1.2,
+                            ),
                           ),
                           const SizedBox(height: 12),
-                          
+
                           _ventas.isEmpty
                               ? const Center(
-                                  child: Padding(
-                                    padding: EdgeInsets.symmetric(vertical: 24.0),
-                                    child: Text('No has registrado ventas hoy.', style: TextStyle(color: AppTheme.textSecondary)),
+                                child: Padding(
+                                  padding: EdgeInsets.symmetric(vertical: 24.0),
+                                  child: Text(
+                                    'No has registrado ventas hoy.',
+                                    style: TextStyle(
+                                      color: AppTheme.textSecondary,
+                                    ),
                                   ),
-                                )
-                              : ListView.builder(
-                                  shrinkWrap: true,
-                                  physics: const NeverScrollableScrollPhysics(),
-                                  itemCount: _ventas.length,
-                                  addRepaintBoundaries: true,
-                                  addAutomaticKeepAlives: false,
-                                  itemBuilder: (context, index) {
-                                    return SaleCard(venta: _ventas[index]);
-                                  },
                                 ),
-                          
+                              )
+                              : ListView.builder(
+                                shrinkWrap: true,
+                                physics: const NeverScrollableScrollPhysics(),
+                                itemCount: _ventas.length,
+                                addRepaintBoundaries: true,
+                                addAutomaticKeepAlives: false,
+                                itemBuilder: (context, index) {
+                                  return SaleCard(venta: _ventas[index]);
+                                },
+                              ),
+
                           const SizedBox(height: 16),
-                          
+
                           // Alerta de Ventas Pendientes
                           if (_pendientesCount > 0) ...[
                             Container(
@@ -219,24 +256,38 @@ class _ResumenDiaPageState extends State<ResumenDiaPage> {
                               decoration: BoxDecoration(
                                 color: AppTheme.accentColor.withOpacity(0.1),
                                 borderRadius: BorderRadius.circular(12),
-                                border: Border.all(color: AppTheme.accentColor.withOpacity(0.3)),
+                                border: Border.all(
+                                  color: AppTheme.accentColor.withOpacity(0.3),
+                                ),
                               ),
                               child: Row(
                                 children: [
-                                  const Icon(Icons.warning_amber_rounded, color: AppTheme.accentColor, size: 28),
+                                  const Icon(
+                                    Icons.warning_amber_rounded,
+                                    color: AppTheme.accentColor,
+                                    size: 28,
+                                  ),
                                   const SizedBox(width: 12),
                                   Expanded(
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         Text(
                                           'Tienes $_pendientesCount ${_pendientesCount == 1 ? "venta pendiente" : "ventas pendientes"}',
-                                          style: const TextStyle(color: AppTheme.accentColor, fontWeight: FontWeight.bold, fontSize: 15),
+                                          style: const TextStyle(
+                                            color: AppTheme.accentColor,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 15,
+                                          ),
                                         ),
                                         const SizedBox(height: 2),
                                         const Text(
                                           'Haz la sincronización final antes de cerrar para no perder datos.',
-                                          style: TextStyle(color: AppTheme.accentColor, fontSize: 13),
+                                          style: TextStyle(
+                                            color: AppTheme.accentColor,
+                                            fontSize: 13,
+                                          ),
                                         ),
                                       ],
                                     ),
@@ -249,14 +300,17 @@ class _ResumenDiaPageState extends State<ResumenDiaPage> {
                         ],
                       ),
                     ),
-            ),
-          ],
+          ),
+        ],
       ),
-      
+
       // Bottom Sticky Area: Sincronización y Cierre
       bottomNavigationBar: Container(
         padding: const EdgeInsets.all(20).copyWith(
-          bottom: MediaQuery.of(context).padding.bottom > 0 ? MediaQuery.of(context).padding.bottom : 20
+          bottom:
+              MediaQuery.of(context).padding.bottom > 0
+                  ? MediaQuery.of(context).padding.bottom
+                  : 20,
         ),
         decoration: BoxDecoration(
           color: AppTheme.surfaceColor,
@@ -265,67 +319,102 @@ class _ResumenDiaPageState extends State<ResumenDiaPage> {
               color: AppTheme.textPrimary.withOpacity(0.05),
               blurRadius: 10,
               offset: const Offset(0, -4),
-            )
-          ]
+            ),
+          ],
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             // Botón de Sincronización
             if (_isSyncing)
-              const Center(child: CircularProgressIndicator(color: AppTheme.accentColor))
+              const Center(
+                child: CircularProgressIndicator(color: AppTheme.accentColor),
+              )
             else
               SizedBox(
                 width: double.infinity,
                 child: OutlinedButton.icon(
                   onPressed: _pendientesCount > 0 ? _handleSync : null,
                   icon: Icon(
-                    _pendientesCount > 0 ? Icons.sync : Icons.check_circle_outline, 
-                    color: _pendientesCount > 0 ? AppTheme.accentColor : AppTheme.textSecondary,
+                    _pendientesCount > 0
+                        ? Icons.sync
+                        : Icons.check_circle_outline,
+                    color:
+                        _pendientesCount > 0
+                            ? AppTheme.accentColor
+                            : AppTheme.textSecondary,
                   ),
                   label: Text(
-                    _pendientesCount > 0 ? 'Sincronización final' : 'Todo sincronizado',
+                    _pendientesCount > 0
+                        ? 'Sincronización final'
+                        : 'Todo sincronizado',
                     style: TextStyle(
-                      color: _pendientesCount > 0 ? AppTheme.accentColor : AppTheme.textSecondary, 
-                      fontSize: 16, 
+                      color:
+                          _pendientesCount > 0
+                              ? AppTheme.accentColor
+                              : AppTheme.textSecondary,
+                      fontSize: 16,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   style: OutlinedButton.styleFrom(
                     side: BorderSide(
-                      color: _pendientesCount > 0 ? AppTheme.accentColor.withOpacity(0.5) : AppTheme.lightGrey, 
+                      color:
+                          _pendientesCount > 0
+                              ? AppTheme.accentColor.withOpacity(0.5)
+                              : AppTheme.lightGrey,
                       width: 1.5,
                     ),
-                    backgroundColor: _pendientesCount > 0 ? AppTheme.accentColor.withOpacity(0.1) : AppTheme.backgroundColor,
+                    backgroundColor:
+                        _pendientesCount > 0
+                            ? AppTheme.accentColor.withOpacity(0.1)
+                            : AppTheme.backgroundColor,
                     padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                 ),
               ),
             const SizedBox(height: 12),
-            
+
             // Botón de Cerrar Jornada
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
                 onPressed: _handleCerrarJornada,
-                icon: const Icon(Icons.exit_to_app, color: AppTheme.surfaceColor),
+                icon: const Icon(
+                  Icons.exit_to_app,
+                  color: AppTheme.surfaceColor,
+                ),
                 label: const Text(
                   'Cerrar jornada',
-                  style: TextStyle(color: AppTheme.surfaceColor, fontSize: 16, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    color: AppTheme.surfaceColor,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.accentColor,
                   padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
               ),
             ),
-            
+
             // Opción de limpieza (Oculta/Pequeña para uso esporádico o Dev)
             TextButton(
               onPressed: _clearOldSales,
-              child: Text('Borrar ventas viejas', style: TextStyle(color: Theme.of(context).colorScheme.error, fontSize: 12)),
+              child: Text(
+                'Borrar ventas viejas',
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.error,
+                  fontSize: 12,
+                ),
+              ),
             ),
           ],
         ),
