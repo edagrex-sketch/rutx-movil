@@ -224,27 +224,23 @@ class _CatalogoPageState extends State<CatalogoPage> {
                     : ListView.builder(
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                         itemCount: _productos.length,
+                        addRepaintBoundaries: true,
+                        addAutomaticKeepAlives: false,
                         itemBuilder: (context, index) {
                           final p = _productos[index];
                           final avatarColor = _getAvatarColor(p.clave);
                           final icon = _getProductIcon(p.clave);
 
-                          return Container(
-                            margin: const EdgeInsets.only(bottom: 12),
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(color: AppTheme.lightGrey),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.01),
-                                  blurRadius: 10,
-                                  offset: const Offset(0, 4),
-                                ),
-                              ],
-                            ),
-                            child: Row(
+                          return RepaintBoundary(
+                            child: Container(
+                              margin: const EdgeInsets.only(bottom: 12),
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(color: AppTheme.lightGrey),
+                              ),
+                              child: Row(
                               children: [
                                 // Left icon/avatar
                                 Container(
@@ -329,10 +325,11 @@ class _CatalogoPageState extends State<CatalogoPage> {
                                       ),
                                     ),
                                   ],
-                                ),
+                                 ),
                               ],
                             ),
-                          );
+                          ),
+                         );
                         },
                       ),
           ),

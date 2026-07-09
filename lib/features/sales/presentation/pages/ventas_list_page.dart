@@ -132,6 +132,8 @@ class _VentasListPageState extends State<VentasListPage> {
                         child: ListView.builder(
                           padding: const EdgeInsets.all(16),
                           itemCount: _ventas.length,
+                          addRepaintBoundaries: true,
+                          addAutomaticKeepAlives: false,
                           itemBuilder: (context, index) {
                             return SaleCard(
                               venta: _ventas[index],

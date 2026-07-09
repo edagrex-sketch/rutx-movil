@@ -398,35 +398,31 @@ class _NuevaVentaPageState extends State<NuevaVentaPage>
                                   horizontal: 16,
                                 ),
                                 itemCount: filteredProducts.length,
+                                addRepaintBoundaries: true,
+                                addAutomaticKeepAlives: false,
                                 itemBuilder: (context, index) {
                                   final p = filteredProducts[index];
                                   final count = _cart[p.articuloId] ?? 0;
                                   final hasQty = count > 0;
 
-                                  return Container(
-                                    margin: const EdgeInsets.only(bottom: 12),
-                                    padding: const EdgeInsets.all(16),
-                                    decoration: BoxDecoration(
-                                      color:
-                                          hasQty
-                                              ? const Color(0xFFFFF9F2)
-                                              : Colors.white,
-                                      borderRadius: BorderRadius.circular(16),
-                                      border: Border.all(
+                                  return RepaintBoundary(
+                                    child: Container(
+                                      margin: const EdgeInsets.only(bottom: 12),
+                                      padding: const EdgeInsets.all(16),
+                                      decoration: BoxDecoration(
                                         color:
                                             hasQty
-                                                ? const Color(0xFFFFE0B2)
-                                                : AppTheme.lightGrey,
-                                        width: hasQty ? 1.5 : 1.0,
-                                      ),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.black.withOpacity(0.01),
-                                          blurRadius: 10,
-                                          offset: const Offset(0, 4),
+                                                ? const Color(0xFFFFF9F2)
+                                                : Colors.white,
+                                        borderRadius: BorderRadius.circular(16),
+                                        border: Border.all(
+                                          color:
+                                              hasQty
+                                                  ? const Color(0xFFFFE0B2)
+                                                  : AppTheme.lightGrey,
+                                          width: hasQty ? 1.5 : 1.0,
                                         ),
-                                      ],
-                                    ),
+                                      ),
                                     child: Row(
                                       children: [
                                         Expanded(
@@ -544,7 +540,8 @@ class _NuevaVentaPageState extends State<NuevaVentaPage>
                                           ),
                                       ],
                                     ),
-                                  );
+                                  ),
+                                 );
                                 },
                               ),
                     ),
@@ -565,6 +562,8 @@ class _NuevaVentaPageState extends State<NuevaVentaPage>
                           child: ListView.builder(
                             padding: const EdgeInsets.all(16),
                             itemCount: _cart.length,
+                            addRepaintBoundaries: true,
+                            addAutomaticKeepAlives: false,
                             itemBuilder: (context, index) {
                               final keyList = _cart.keys.toList();
                               final id = keyList[index];
@@ -573,22 +572,16 @@ class _NuevaVentaPageState extends State<NuevaVentaPage>
                                 (p) => p.articuloId == id,
                               );
 
-                              return Container(
-                                margin: const EdgeInsets.only(bottom: 12),
-                                padding: const EdgeInsets.all(16),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(16),
-                                  border: Border.all(color: AppTheme.lightGrey),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withOpacity(0.01),
-                                      blurRadius: 10,
-                                      offset: const Offset(0, 4),
-                                    ),
-                                  ],
-                                ),
-                                child: Row(
+                              return RepaintBoundary(
+                                child: Container(
+                                  margin: const EdgeInsets.only(bottom: 12),
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(16),
+                                    border: Border.all(color: AppTheme.lightGrey),
+                                  ),
+                                  child: Row(
                                   children: [
                                     Expanded(
                                       child: Column(
@@ -704,7 +697,8 @@ class _NuevaVentaPageState extends State<NuevaVentaPage>
                                     ),
                                   ],
                                 ),
-                              );
+                              ),
+                             );
                             },
                           ),
                         ),

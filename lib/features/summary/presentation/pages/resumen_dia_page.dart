@@ -203,6 +203,8 @@ class _ResumenDiaPageState extends State<ResumenDiaPage> {
                                   shrinkWrap: true,
                                   physics: const NeverScrollableScrollPhysics(),
                                   itemCount: _ventas.length,
+                                  addRepaintBoundaries: true,
+                                  addAutomaticKeepAlives: false,
                                   itemBuilder: (context, index) {
                                     return SaleCard(venta: _ventas[index]);
                                   },
