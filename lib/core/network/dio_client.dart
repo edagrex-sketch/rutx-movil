@@ -8,12 +8,14 @@ class DioClient {
   DioClient._();
 
   final LocalStorage _storage = LocalStorage();
-  late final Dio _dio;
+  Dio? _dio;
 
   Dio get dio {
-    _dio = Dio(_createOptions());
-    _dio.interceptors.add(_authInterceptor());
-    return _dio;
+    if (_dio == null) {
+      _dio = Dio(_createOptions());
+      _dio!.interceptors.add(_authInterceptor());
+    }
+    return _dio!;
   }
 
   BaseOptions _createOptions() => BaseOptions(

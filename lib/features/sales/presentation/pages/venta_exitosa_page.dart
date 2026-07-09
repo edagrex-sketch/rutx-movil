@@ -18,8 +18,10 @@ class VentaExitosaPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final now = DateTime.now();
-    final timeStr = '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
-    final ticketNum = ventaId.length >= 8 ? ventaId.substring(ventaId.length - 6) : '001423';
+    final timeStr =
+        '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
+    final ticketNum =
+        ventaId.length >= 8 ? ventaId.substring(ventaId.length - 6) : '001423';
 
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
@@ -30,7 +32,7 @@ class VentaExitosaPage extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const Spacer(),
-              
+
               // Green Check Circle
               Container(
                 width: 100,
@@ -48,7 +50,8 @@ class VentaExitosaPage extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 24),
-              
+
+              // Title
               // Title
               Text(
                 isOnline ? 'Venta enviada' : 'Venta guardada',
@@ -59,7 +62,7 @@ class VentaExitosaPage extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 8),
-              
+
               // Client and Total
               Text(
                 '$clienteNombre · \$${total.toStringAsFixed(0)}',
@@ -70,19 +73,63 @@ class VentaExitosaPage extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 4),
-              
+
               // Time and Reference
               Text(
-                'Hoy $timeStr · M3 #$ticketNum',
+                isOnline ? 'Hoy $timeStr · M3 #$ticketNum' : 'Hoy $timeStr',
                 style: const TextStyle(
                   fontSize: 14,
                   color: AppTheme.textSecondary,
                 ),
               ),
               const SizedBox(height: 24),
-              
+
+              // Sin señal banner
+              if (!isOnline)
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFF8E1),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: const Color(0xFFFFE082)),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.access_time,
+                        color: Color(0xFFF9A825),
+                        size: 20,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: const [
+                            Text(
+                              'Sin señal por ahora',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                                color: Color(0xFF795500),
+                              ),
+                            ),
+                            SizedBox(height: 2),
+                            Text(
+                              'Guardamos tu venta y la enviaremos automáticamente cuando haya conexión.',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: Color(0xFF795500),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
               const Spacer(),
-              
+
               // Action Buttons
               SizedBox(
                 width: double.infinity,
@@ -109,25 +156,30 @@ class VentaExitosaPage extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 12),
-              
+
               SizedBox(
                 width: double.infinity,
                 child: OutlinedButton(
                   onPressed: () {
-                    // Navigate back to client list
-                    Navigator.pop(context, 'view_clients');
+                    Navigator.pop(
+                      context,
+                      isOnline ? 'view_clients' : 'view_pending',
+                    );
                   },
                   style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: Color(0xFFFFE0B2), width: 1.5),
+                    side: const BorderSide(
+                      color: Color(0xFFFFE0B2),
+                      width: 1.5,
+                    ),
                     backgroundColor: const Color(0xFFFFF3E0),
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  child: const Text(
-                    'Ver clientes',
-                    style: TextStyle(
+                  child: Text(
+                    isOnline ? 'Ver clientes' : 'Ver ventas pendientes',
+                    style: const TextStyle(
                       color: AppTheme.accentColor,
                       fontSize: 16,
                       fontWeight: FontWeight.bold,

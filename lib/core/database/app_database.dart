@@ -121,23 +121,12 @@ class AppDatabase {
   Future<void> seedDatabase() async {
     // 1. Clientes
     await clienteDao.insertAll([
-      Cliente(clienteId: 1, nombreCliente: 'Abarrotes Mendoza', calle: 'Calle Juárez 45', colonia: 'Centro', codigoPostal: '37000', limiteCredito: 5000.0),
-      Cliente(clienteId: 2, nombreCliente: 'Minisuper El Roble', calle: 'Av. Hidalgo 120', colonia: 'San Rafael', codigoPostal: '37120', limiteCredito: 8000.0),
-      Cliente(clienteId: 3, nombreCliente: 'Tienda Don Pepe', calle: 'Calle Morelos 8', colonia: 'Centro', codigoPostal: '37000', limiteCredito: 4000.0),
-      Cliente(clienteId: 4, nombreCliente: 'Comercial Reyes', calle: 'Blvd. Norte 230', colonia: 'Norte', codigoPostal: '37500', limiteCredito: 15000.0),
-      Cliente(clienteId: 5, nombreCliente: 'Super Familia', calle: 'Av. Sur 77', colonia: 'Sur', codigoPostal: '37800', limiteCredito: 6000.0),
-      Cliente(clienteId: 6, nombreCliente: 'Abarrotes La Esquina', calle: 'Av. Central 505', colonia: 'Oriente', codigoPostal: '37900', limiteCredito: 3000.0),
+      Cliente(clienteId: 2579, nombreCliente: 'Cliente de Prueba Microsip', calle: 'Calle Verdadera 123', colonia: 'Centro', codigoPostal: '37000', limiteCredito: 50000.0),
     ]);
 
     // 2. Productos
     await productDao.insertAll([
-      Producto(articuloId: 1, nombre: 'Refresco Cola 600ml', estatus: 'A', clave: 'REF001', precio: 18.0),
-      Producto(articuloId: 2, nombre: 'Refresco Naranja 600ml', estatus: 'A', clave: 'REF002', precio: 18.0),
-      Producto(articuloId: 3, nombre: 'Agua Natural 1L', estatus: 'A', clave: 'AGU001', precio: 12.0),
-      Producto(articuloId: 4, nombre: 'Jugo Mango 500ml', estatus: 'A', clave: 'JUG001', precio: 22.0),
-      Producto(articuloId: 5, nombre: 'Galletas Vainilla 200g', estatus: 'A', clave: 'GAL001', precio: 28.0),
-      Producto(articuloId: 6, nombre: 'Galletas Chocolate 200g', estatus: 'A', clave: 'GAL002', precio: 28.0),
-      Producto(articuloId: 7, nombre: 'Chicles Menta x10', estatus: 'A', clave: 'CHI001', precio: 5.0),
+      Producto(articuloId: 312, nombre: 'Artículo de Prueba', estatus: 'A', clave: 'PROD312', precio: 89.50),
     ]);
 
     // 3. Notificaciones

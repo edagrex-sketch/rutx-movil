@@ -230,6 +230,8 @@ class _ClientesPageState extends State<ClientesPage> {
                     : ListView.builder(
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                         itemCount: filteredList.length,
+                        addRepaintBoundaries: true,
+                        addAutomaticKeepAlives: false,
                         itemBuilder: (context, index) {
                           final c = filteredList[index];
                           final hasVisited = _visitasMap.containsKey(c.clienteId);
@@ -241,7 +243,8 @@ class _ClientesPageState extends State<ClientesPage> {
                               ? '${names[0][0]}${names[1][0]}'.toUpperCase()
                               : c.nombreCliente.substring(0, 2).toUpperCase();
 
-                          return GestureDetector(
+                          return RepaintBoundary(
+                            child: GestureDetector(
                             onTap: () async {
                               if (!hasVisited) {
                                 final result = await Navigator.push(
@@ -269,13 +272,6 @@ class _ClientesPageState extends State<ClientesPage> {
                                 color: Colors.white,
                                 borderRadius: BorderRadius.circular(16),
                                 border: Border.all(color: AppTheme.lightGrey),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.01),
-                                    blurRadius: 10,
-                                    offset: const Offset(0, 4),
-                                  ),
-                                ],
                               ),
                               child: Row(
                                 children: [
@@ -366,7 +362,8 @@ class _ClientesPageState extends State<ClientesPage> {
                                 ],
                               ),
                             ),
-                          );
+                          ),
+                         );
                         },
                       ),
           ),

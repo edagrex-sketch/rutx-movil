@@ -1,0 +1,27 @@
+{
+  "vendedor": {
+    "vendedor_id": 7853,
+    "nombre": "Vendedor Ruta Centro",
+    "ruta": "Ruta Centro",
+    "fecha_sincronizacion": "2026-07-07T08:00:00"
+  },
+  "clientes": [
+    {
+      "cliente_id": 2579,
+      "nombre_cliente": "Cliente de Prueba Microsip",
+      "calle": "Calle Verdadera 123",
+      "colonia": "Centro",
+      "codigo_postal": "37000",
+      "limite_credito": 50000.0
+    }
+  ],
+  "productos": [
+    {
+      "articulo_id": 312,
+      "nombre": "Artículo de Prueba",
+      "estatus": "A",
+      "clave": "PROD312",
+      "precio": 89.50
+    }
+  ]
+}

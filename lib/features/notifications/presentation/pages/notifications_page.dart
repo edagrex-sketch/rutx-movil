@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_theme.dart';
-import '../../../../core/database/app_database.dart';
 import '../../../../core/database/entities/notificacion_entity.dart';
+import '../../../../core/network/notification_polling_service.dart';
+import '../../data/repositories/notification_repository.dart';
 
 class NotificationsPage extends StatefulWidget {
   const NotificationsPage({Key? key}) : super(key: key);
@@ -11,22 +13,33 @@ class NotificationsPage extends StatefulWidget {
 }
 
 class _NotificationsPageState extends State<NotificationsPage> {
+  final NotificationRepository _repository = NotificationRepository();
+  final NotificationPollingService _pollingService = NotificationPollingService();
   List<Notificacion> _notifications = [];
   int _unreadCount = 0;
   bool _isLoading = true;
+  StreamSubscription<int>? _subscription;
 
   @override
   void initState() {
     super.initState();
     _loadNotifications();
+    _subscription = _pollingService.countStream.listen((count) {
+      if (mounted) {
+        _loadNotifications();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _subscription?.cancel();
+    super.dispose();
   }
 
   Future<void> _loadNotifications() async {
-    final db = AppDatabase();
-    await db.initialize();
-
-    final list = await db.notificacionDao.getAll();
-    final unread = await db.notificacionDao.countNoLeidas();
+    final list = await _repository.getAll();
+    final unread = await _repository.getUnreadCount();
 
     if (mounted) {
       setState(() {
@@ -38,23 +51,17 @@ class _NotificationsPageState extends State<NotificationsPage> {
   }
 
   void _markAsRead(int id) async {
-    final db = AppDatabase();
-    await db.initialize();
-    await db.notificacionDao.markAsRead(id);
+    await _repository.markAsRead(id);
     _loadNotifications();
   }
 
   void _confirmNotification(int id, String newMensaje) async {
-    final db = AppDatabase();
-    await db.initialize();
-    await db.notificacionDao.updateMensaje(id, newMensaje);
+    await _repository.updateMensaje(id, newMensaje);
     _loadNotifications();
   }
 
   void _markAllAsRead() async {
-    final db = AppDatabase();
-    await db.initialize();
-    await db.notificacionDao.markAllAsRead();
+    await _repository.markAllAsRead();
     _loadNotifications();
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -67,10 +74,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
   }
 
   void _resetSeeders() async {
-    final db = AppDatabase();
-    await db.initialize();
-    await db.notificacionDao.deleteAll();
-    await db.seedDatabase();
+    await _repository.reseed();
     await _loadNotifications();
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -194,7 +198,6 @@ class _NotificationsPageState extends State<NotificationsPage> {
                         ),
                       ),
                     ),
-                  
                   // Tab contents
                   Expanded(
                     child: TabBarView(
