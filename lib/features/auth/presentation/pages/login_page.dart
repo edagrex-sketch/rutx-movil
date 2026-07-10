@@ -55,7 +55,11 @@ class _LoginPageState extends State<LoginPage> {
           );
         }
       } else {
-        showError(context, AppError(mensajeUsuario: error, esRecuperable: false));
+        showError(
+          context, 
+          error, 
+          onRetry: error.esRecuperable ? _handleLogin : null
+        );
       }
     }
   }
