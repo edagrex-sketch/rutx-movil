@@ -57,4 +57,19 @@ class LocalStorage {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getBool('has_sync_data') ?? false;
   }
+
+  Future<void> setDiaCerrado(String fecha) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('dia_cerrado', fecha);
+  }
+
+  Future<String?> getDiaCerrado() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('dia_cerrado');
+  }
+
+  Future<void> clearDiaCerrado() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('dia_cerrado');
+  }
 }
