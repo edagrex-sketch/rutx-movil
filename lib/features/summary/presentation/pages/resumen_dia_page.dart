@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import '../../../../core/errors/app_error.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/database/app_database.dart';
 import '../../../../core/database/entities/venta_pendiente_entity.dart';
 import '../../../../core/storage/local_storage.dart';
+import '../../../../shared/widgets/feedback_utils.dart';
 import '../../data/summary_repository.dart';
 import '../../../../features/auth/presentation/pages/login_page.dart';
 import '../../../../features/sales/data/sales_repository.dart';
@@ -79,16 +81,13 @@ class _ResumenDiaPageState extends State<ResumenDiaPage> {
     await _loadVentas();
     if (mounted) {
       setState(() => _isSyncing = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            _pendientesCount > 0
-                ? 'Aún hay ventas sin sincronizar. Verifica que los clientes existan en el servidor.'
-                : 'Sincronización completada',
-          ),
-          backgroundColor: _pendientesCount > 0 ? Colors.orange : Colors.green,
-        ),
-      );
+      if (_pendientesCount > 0) {
+        showError(context, AppError(
+          mensajeUsuario: 'Aún hay ventas sin sincronizar. Verifica que los clientes existan en el servidor.',
+        ));
+      } else {
+        showSuccess(context, 'Sincronización completada');
+      }
     }
   }
 
@@ -139,12 +138,7 @@ class _ResumenDiaPageState extends State<ResumenDiaPage> {
         if (confirm != true) return;
       }
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Procesando cierre de jornada...'),
-          duration: Duration(seconds: 1),
-        ),
-      );
+      showInfo(context, 'Procesando cierre de jornada...');
 
       final db = AppDatabase();
       await db.initialize();
@@ -154,7 +148,7 @@ class _ResumenDiaPageState extends State<ResumenDiaPage> {
         try {
           await _summaryRepository.sendClosingData(vendedorId, _ventas);
         } catch (e) {
-          print('Error al enviar datos de cierre al servidor: $e');
+          showInfo(context, 'Cierre local completado (servidor no disponible)');
         }
       }
 
@@ -175,14 +169,11 @@ class _ResumenDiaPageState extends State<ResumenDiaPage> {
         );
       }
     } catch (e) {
-      print('Error al cerrar jornada: $e');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error al cerrar jornada: $e'),
-            backgroundColor: Colors.redAccent,
-          ),
-        );
+        showError(context, AppError(
+          mensajeUsuario: 'Error al cerrar jornada. Intenta de nuevo.',
+          esRecuperable: false,
+        ));
       }
     }
   }

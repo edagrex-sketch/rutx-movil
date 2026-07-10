@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
+import '../../../../core/errors/app_error.dart';
+import '../../../../shared/widgets/feedback_utils.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/storage/local_storage.dart';
 import '../../../../core/database/app_database.dart';
@@ -168,6 +170,12 @@ class _NuevaVentaPageState extends State<NuevaVentaPage>
       if (success) {
         _salesRepository.syncPendingSales();
 
+        if (_isConnected) {
+          showSuccess(context, 'Venta registrada y enviada al servidor');
+        } else {
+          showInfo(context, 'Sin conexión. La venta se enviará automáticamente al recuperar señal.');
+        }
+
         final result = await Navigator.push<String>(
           context,
           MaterialPageRoute(
@@ -193,12 +201,7 @@ class _NuevaVentaPageState extends State<NuevaVentaPage>
           }
         }
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Error al registrar la venta.'),
-            backgroundColor: Colors.redAccent,
-          ),
-        );
+        showError(context, AppError(mensajeUsuario: 'Error al guardar la venta localmente. Verifica el almacenamiento.'));
       }
     }
   }

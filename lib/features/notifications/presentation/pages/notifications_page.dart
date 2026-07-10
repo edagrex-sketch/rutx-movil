@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import '../../../../core/errors/app_error.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/database/entities/notificacion_entity.dart';
 import '../../../../core/network/notification_polling_service.dart';
+import '../../../../shared/widgets/feedback_utils.dart';
 import '../../data/repositories/notification_repository.dart';
 
 class NotificationsPage extends StatefulWidget {
@@ -51,38 +53,42 @@ class _NotificationsPageState extends State<NotificationsPage> {
   }
 
   void _markAsRead(int id) async {
-    await _repository.markAsRead(id);
+    final error = await _repository.markAsRead(id);
+    if (mounted && error != null) {
+      showError(context, AppError(mensajeUsuario: error, esRecuperable: false));
+    }
     _loadNotifications();
   }
 
   void _confirmNotification(int id, String newMensaje) async {
-    await _repository.updateMensaje(id, newMensaje);
+    final error = await _repository.updateMensaje(id, newMensaje);
+    if (mounted && error != null) {
+      showError(context, AppError(mensajeUsuario: error, esRecuperable: false));
+    }
     _loadNotifications();
   }
 
   void _markAllAsRead() async {
-    await _repository.markAllAsRead();
+    final error = await _repository.markAllAsRead();
     _loadNotifications();
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Todas las notificaciones marcadas como leídas'),
-          duration: Duration(seconds: 2),
-        ),
-      );
+      if (error != null) {
+        showError(context, AppError(mensajeUsuario: error, esRecuperable: false));
+      } else {
+        showSuccess(context, 'Todas las notificaciones marcadas como leídas');
+      }
     }
   }
 
   void _resetSeeders() async {
-    await _repository.reseed();
+    final error = await _repository.reseed();
     await _loadNotifications();
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Notificaciones restablecidas con datos de prueba'),
-          duration: Duration(seconds: 2),
-        ),
-      );
+      if (error != null) {
+        showError(context, AppError(mensajeUsuario: error, esRecuperable: false));
+      } else {
+        showSuccess(context, 'Notificaciones restablecidas con datos de prueba');
+      }
     }
   }
 
