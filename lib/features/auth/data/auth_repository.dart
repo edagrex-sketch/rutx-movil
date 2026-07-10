@@ -10,7 +10,7 @@ class AuthRepository {
   ));
   final LocalStorage _localStorage = LocalStorage();
 
-  Future<bool> login(String username, String password, bool rememberMe) async {
+  Future<String?> login(String username, String password, bool rememberMe) async {
     try {
       final response = await _dio.post('/api/auth/login', data: {
         'usuario': username,
@@ -22,12 +22,23 @@ class AuthRepository {
         await _localStorage.saveToken(token);
         await _localStorage.saveVendedorId(7853);
         await _localStorage.saveVendedorNombre('Vendedor Ruta Centro');
-        return true;
+        return null;
       }
-      return false;
-    } catch (e) {
-      print('LOGIN ERROR: $e');
-      return false;
+      return 'Credenciales incorrectas.';
+    } on DioException catch (e) {
+      if (e.type == DioExceptionType.connectionTimeout ||
+          e.type == DioExceptionType.receiveTimeout) {
+        return 'El servidor no responde. Verifica tu conexión.';
+      }
+      if (e.type == DioExceptionType.connectionError) {
+        return 'Sin conexión al servidor. Asegúrate de que el Sincronizador esté encendido.';
+      }
+      if (e.response?.statusCode == 401) {
+        return 'Usuario o contraseña incorrectos.';
+      }
+      return 'Error al iniciar sesión. Intenta de nuevo.';
+    } catch (_) {
+      return 'Error inesperado. Intenta de nuevo.';
     }
   }
 

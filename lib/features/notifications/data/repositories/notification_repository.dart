@@ -5,7 +5,7 @@ import '../datasources/notification_remote_datasource.dart';
 class NotificationRepository {
   final NotificationRemoteDataSource _remoteDataSource = NotificationRemoteDataSource();
 
-  Future<void> fetchAndPersist(int vendedorId) async {
+  Future<String?> fetchAndPersist(int vendedorId) async {
     try {
       final db = AppDatabase();
       await db.initialize();
@@ -29,7 +29,10 @@ class NotificationRepository {
       if (nuevas.isNotEmpty) {
         await db.notificacionDao.insertAll(nuevas);
       }
-    } catch (_) {}
+      return null;
+    } catch (e) {
+      return 'Error al descargar notificaciones.';
+    }
   }
 
   Future<List<Notificacion>> getAll() async {
@@ -44,34 +47,59 @@ class NotificationRepository {
     return db.notificacionDao.countNoLeidas();
   }
 
-  Future<void> markAsRead(int id) async {
-    final db = AppDatabase();
-    await db.initialize();
-    await db.notificacionDao.markAsRead(id);
+  Future<String?> markAsRead(int id) async {
+    try {
+      final db = AppDatabase();
+      await db.initialize();
+      await db.notificacionDao.markAsRead(id);
+      return null;
+    } catch (_) {
+      return 'Error al marcar como leída.';
+    }
   }
 
-  Future<void> updateMensaje(int id, String nuevoMensaje) async {
-    final db = AppDatabase();
-    await db.initialize();
-    await db.notificacionDao.updateMensaje(id, nuevoMensaje);
+  Future<String?> updateMensaje(int id, String nuevoMensaje) async {
+    try {
+      final db = AppDatabase();
+      await db.initialize();
+      await db.notificacionDao.updateMensaje(id, nuevoMensaje);
+      return null;
+    } catch (_) {
+      return 'Error al confirmar notificación.';
+    }
   }
 
-  Future<void> markAllAsRead() async {
-    final db = AppDatabase();
-    await db.initialize();
-    await db.notificacionDao.markAllAsRead();
+  Future<String?> markAllAsRead() async {
+    try {
+      final db = AppDatabase();
+      await db.initialize();
+      await db.notificacionDao.markAllAsRead();
+      return null;
+    } catch (_) {
+      return 'Error al marcar todas como leídas.';
+    }
   }
 
-  Future<void> deleteAll() async {
-    final db = AppDatabase();
-    await db.initialize();
-    await db.notificacionDao.deleteAll();
+  Future<String?> deleteAll() async {
+    try {
+      final db = AppDatabase();
+      await db.initialize();
+      await db.notificacionDao.deleteAll();
+      return null;
+    } catch (_) {
+      return 'Error al eliminar notificaciones.';
+    }
   }
 
-  Future<void> reseed() async {
-    final db = AppDatabase();
-    await db.initialize();
-    await db.notificacionDao.deleteAll();
-    await db.seedDatabase();
+  Future<String?> reseed() async {
+    try {
+      final db = AppDatabase();
+      await db.initialize();
+      await db.notificacionDao.deleteAll();
+      await db.seedDatabase();
+      return null;
+    } catch (_) {
+      return 'Error al restablecer notificaciones.';
+    }
   }
 }

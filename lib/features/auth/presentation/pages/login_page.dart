@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import '../../../../core/errors/app_error.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/database/app_database.dart';
+import '../../../../shared/widgets/feedback_utils.dart';
 import '../../data/auth_repository.dart';
 import '../../../home/presentation/pages/home_page.dart';
 import '../../../sync/presentation/pages/download_page.dart';
@@ -23,17 +25,17 @@ class _LoginPageState extends State<LoginPage> {
 
   void _handleLogin() async {
     setState(() => _isLoading = true);
-    
-    final success = await _authRepository.login(
+
+    final error = await _authRepository.login(
       _usernameController.text,
       _passwordController.text,
       _rememberMe,
     );
-    
+
     if (mounted) {
       setState(() => _isLoading = false);
 
-      if (success) {
+      if (error == null) {
         final db = AppDatabase();
         await db.initialize();
         final clientes = await db.clienteDao.getAll();
@@ -53,13 +55,7 @@ class _LoginPageState extends State<LoginPage> {
           );
         }
       } else {
-        // Mostrar mensaje de error si las credenciales fallan o el servidor no responde
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Error al iniciar sesión. Revisa tus credenciales o conexión.'),
-            backgroundColor: Colors.redAccent,
-          ),
-        );
+        showError(context, AppError(mensajeUsuario: error, esRecuperable: false));
       }
     }
   }
