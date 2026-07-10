@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import '../../../core/storage/local_storage.dart';
 import '../../../core/constants/api_constants.dart';
+import '../../../core/errors/app_error.dart';
 
 class AuthRepository {
   final Dio _dio = Dio(BaseOptions(
@@ -10,7 +11,7 @@ class AuthRepository {
   ));
   final LocalStorage _localStorage = LocalStorage();
 
-  Future<String?> login(String username, String password, bool rememberMe) async {
+  Future<AppError?> login(String username, String password, bool rememberMe) async {
     try {
       final response = await _dio.post('/api/auth/login', data: {
         'usuario': username,
@@ -24,21 +25,25 @@ class AuthRepository {
         await _localStorage.saveVendedorNombre('Vendedor Ruta Centro');
         return null;
       }
-      return 'Credenciales incorrectas.';
+      return AppError(mensajeUsuario: 'Credenciales incorrectas.', esRecuperable: false);
     } on DioException catch (e) {
       if (e.type == DioExceptionType.connectionTimeout ||
           e.type == DioExceptionType.receiveTimeout) {
-        return 'El servidor no responde. Verifica tu conexión.';
+        return AppError(mensajeUsuario: 'El servidor no responde. Verifica tu conexión.', esRecuperable: true);
       }
       if (e.type == DioExceptionType.connectionError) {
-        return 'Sin conexión al servidor. Asegúrate de que el Sincronizador esté encendido.';
+        return AppError(mensajeUsuario: 'Sin conexión al servidor. Asegúrate de que el Sincronizador esté encendido.', esRecuperable: true);
       }
       if (e.response?.statusCode == 401) {
-        return 'Usuario o contraseña incorrectos.';
+        return AppError(mensajeUsuario: 'Usuario o contraseña incorrectos.', esRecuperable: false);
       }
-      return 'Error al iniciar sesión. Intenta de nuevo.';
+      // Consider bad response (503, 500) as recoverable network errors
+      if (e.response?.statusCode == 503 || e.response?.statusCode == 500) {
+        return AppError(mensajeUsuario: 'El servidor está temporalmente fuera de servicio.', esRecuperable: true);
+      }
+      return AppError(mensajeUsuario: 'Error al iniciar sesión. Intenta de nuevo.', esRecuperable: true);
     } catch (_) {
-      return 'Error inesperado. Intenta de nuevo.';
+      return AppError(mensajeUsuario: 'Error inesperado. Intenta de nuevo.', esRecuperable: true);
     }
   }
 

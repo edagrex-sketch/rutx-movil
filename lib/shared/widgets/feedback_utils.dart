@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/errors/app_error.dart';
 
-void showError(BuildContext context, AppError error) {
+void showError(BuildContext context, AppError error, {VoidCallback? onRetry}) {
   ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(
       content: Row(
@@ -14,11 +14,11 @@ void showError(BuildContext context, AppError error) {
       backgroundColor: Colors.redAccent,
       behavior: SnackBarBehavior.floating,
       duration: const Duration(seconds: 4),
-      action: error.esRecuperable
+      action: (error.esRecuperable && onRetry != null)
           ? SnackBarAction(
               label: 'Reintentar',
               textColor: Colors.white,
-              onPressed: () {},
+              onPressed: onRetry,
             )
           : null,
     ),

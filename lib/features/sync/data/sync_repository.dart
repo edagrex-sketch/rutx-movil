@@ -5,22 +5,15 @@ import '../../../core/database/entities/cliente_entity.dart';
 import '../../../core/database/entities/producto_entity.dart';
 import '../../../core/network/sync_result.dart';
 
+import '../../../core/network/dio_client.dart';
+
 class SyncRepository {
   final Dio _dio;
   final AppDatabase _db;
 
   SyncRepository({Dio? dio, AppDatabase? db})
-      : _dio = dio ?? _createDio(),
+      : _dio = dio ?? DioClient().dio,
         _db = db ?? AppDatabase();
-
-  static Dio _createDio() {
-    final d = Dio(BaseOptions(
-      baseUrl: ApiConstants.baseUrl,
-      connectTimeout: const Duration(seconds: 10),
-      receiveTimeout: const Duration(seconds: 15),
-    ));
-    return d;
-  }
 
   Future<SyncResult> downloadMorningData(int vendedorId) async {
     final maxIntentos = 3;
